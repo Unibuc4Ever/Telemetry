@@ -8,6 +8,17 @@
 #include <syslog.h>
 #include <string.h>
 
+int ReceiveMessage(char* channel, char* message)
+{
+
+}
+
+int RegisterToken(int token, char* channel)
+{
+    
+}
+
+
 int main(int argv, char* args[]) {
     
     /* Our process ID and Session ID */

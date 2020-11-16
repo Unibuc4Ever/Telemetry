@@ -1,12 +1,22 @@
 #ifndef TRIE_
 #define TRIE_
 
-#include "linked_list.h"
+#include "universal_type.h"
+#include "vector.h"
 
-// Adds the node `node` to the chanel `channel`.
-void AddNode(const char* channel, struct Node* node);
+/**
+ * Allowed characters in the channel's name:
+ * [a-z][A-Z][0-9]/
+ */
 
-// Returns a linked list with all the node influenced by a channel.
-struct Node* FindSubtree(const char* channel);
+/**
+ * Add an UniversalType at a certain path within the Trie.
+ */
+int Insert(char* channel, struct UniversalType element);
+
+/**
+ * Returns all the UniversalTypes from within the Trie.
+ */
+struct Vector ExtractSubtree(char* channel);
 
 #endif // TRIE_
