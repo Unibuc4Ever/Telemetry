@@ -12,7 +12,7 @@
 /**
  * Add an UniversalType at a certain path within the Trie.
  */
-int Insert(char* channel, struct UniversalType element);
+int Insert(char* channel, UniversalType element);
 
 /**
  * Returns all the UniversalTypes from within the Trie.
