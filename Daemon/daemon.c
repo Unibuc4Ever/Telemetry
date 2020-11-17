@@ -12,24 +12,31 @@
 #include "universal_type.h"
 #include "trie.h"
 
-int ReceiveMessage(char* channel, char* message)
+int BroadcastMessage(char* channel, char* message)
 {
-    UniversalType *container = malloc(sizeof container);
-
+    if (channel || message)
+        return 0;
+    return 0;
 }
 
 int RegisterToken(int token, char* channel)
 {
-
+    if (token || channel)
+        return 0;
+    return 0;
 }
 
-void ReceiveMessageToToken(int token, char* message)
+int ReceiveMessageToToken(int token, char* message)
 {
-
+    if (token || message)
+        return 0;
+    return 0;
 }
 
 int main(int argv, char* args[]) {
-    
+    if (argv || args) {
+        /// idk
+    }
     /* Our process ID and Session ID */
     pid_t pid, sid;
     

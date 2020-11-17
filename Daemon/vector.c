@@ -1,28 +1,35 @@
 #include <stdlib.h>
 
 #include "vector.h"
+#include "errors.h"
 
-struct Vector CreateEmptyVector(int byte_size)
+int CreateEmptyVector(Vector** v, int byte_size)
 {
-    struct Vector v;
-    v.v = 0;
-    v.size = v.allocated = 0;
-    v.byte_size = byte_size;
-    return v;
+    if (byte_size <= 0)
+        return INVALID_VECTOR_OPERATION;
+
+    *v = malloc(sizeof **v);
+    (*v)->v = 0;
+    (*v)->size = (*v)->allocated = 0;
+    (*v)->byte_size = byte_size;
+    return 0;
 }
 
 
-struct Vector CreateVector(int byte_size, int size)
+int CreateVector(Vector** v, int byte_size, int size)
 {
-    struct Vector v;
-    v.size = v.allocated = size;
-    v.byte_size = byte_size;
-    v.v = malloc(size * byte_size);
-    return v;
+    if (size <= 0 || byte_size <= 0)
+        return INVALID_VECTOR_OPERATION;
+
+    *v = malloc(sizeof **v);
+    (*v)->size = (*v)->allocated = size;
+    (*v)->byte_size = byte_size;
+    (*v)->v = malloc(size * byte_size);
+    return 0;
 }
 
 
-void PushBack(struct Vector* v, void* elem)
+int PushBack(Vector* v, void* elem)
 {
     // Not enough memory, let's double length.
     if (v->allocated == v->size) {
@@ -46,26 +53,34 @@ void PushBack(struct Vector* v, void* elem)
     for (int i = 0; i < v->byte_size; i++)
         ((char*)v->v)[v->byte_size * v->size + i] = ((char*)elem)[i];
     v->size++;
+
+    return 0;
 }
 
-void PopBack(struct Vector* v)
+int PopBack(Vector* v)
 {
-    if (v->size)
+    if (v->size) {
         v->size--;
+        return 0;
+    }
+    return INVALID_VECTOR_OPERATION;
 }
 
-void* GetVectorElement(struct Vector* v, int p)
+int GetVectorElement(Vector* v, int p, void** element)
 {
     if (p < 0 || p >= v->size)
-        return 0;
-    return v->v + p * v->byte_size;
+        return INVALID_VECTOR_OPERATION;
+    *element = v->v + p * v->byte_size;
+    return 0;
 }
 
-void DeleteVector(struct Vector* v)
+int DeleteVector(Vector** v)
 {
     // Clear memory if it exists, and set 0.
-    if (v->v)
-        free(v->v);
-    v->v = NULL;
-    v->allocated = v->size = 0;
+    if ((*v)->v)
+        free((*v)->v);
+    free(*v);
+    *v = NULL;
+    
+    return 0;
 }
