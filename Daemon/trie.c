@@ -2,19 +2,25 @@
 #include <string.h>
 
 #include "trie.h"
+#include "errors.h"
 
 #define SIGMA (26 * 2 + 10 + 1)
 
-struct TrieNode {
-    struct Vector universal_elements;
-    struct TrieNode* children[SIGMA];
-} root;
+struct __TrieNode_;
+typedef struct __TrieNode_ TrieNode;
+
+struct __TrieNode_
+{
+    Vector* universal_elements;
+    TrieNode* children[SIGMA];
+};
+TrieNode root;
 
 // Create a new trie node.
-struct TrieNode* CreateTrieNode()
+TrieNode* CreateTrieNode()
 {
-    struct TrieNode* nod = malloc(sizeof nod);
-    nod->universal_elements = CreateEmptyVector(sizeof (UniversalType));
+    TrieNode* nod = malloc(sizeof nod);
+    CreateEmptyVector(&(nod->universal_elements), sizeof (UniversalType));
     memset(nod->children, 0, sizeof nod->children);
     return nod;
 }
@@ -32,16 +38,18 @@ int GetCharId(char c)
 
 int Insert(char* channel, UniversalType element)
 {
-    struct TrieNode* node = &root;
+    TrieNode* node = &root;
     int l = strlen(channel);
 
     if (l == 0)
-        return 101;
+        return EMPTY_CHANNEL_ERROR;
     if (channel[0] != '/')
-        return 100;
+        return INVALID_CHANNEL_NAME;
     
     for (int i = 0; i < l; i++) {
         int char_id = GetCharId(channel[i]);
+        if (char_id >= SIGMA)
+            return INVALID_CHANNEL_NAME;
 
         // If node doesn't exist I have to create it.
         if (!node->children[char_id])
@@ -50,28 +58,56 @@ int Insert(char* channel, UniversalType element)
         node = node->children[char_id];
     }
 
-    PushBack(&(node->universal_elements), &element);
+    int error = PushBack(node->universal_elements, &element);
+
+    return error;
+}
+
+int GetSubtreeElements(TrieNode* node, Vector* vec)
+{
+    for (int i = 0; i < node->universal_elements->size; i++) {
+        UniversalType* element;
+        int err = GetVectorElement(node->universal_elements, i, (void**)&element);
+        if (!err)
+            err = PushBack(vec, element);
+        if (err)
+            return err;
+    }
+
+    for (int i = 0; i < SIGMA; i++) {
+        if (node->children[i]) {
+            int err = GetSubtreeElements(node->children[i], vec);
+            if (err)
+                return err;
+        }
+    }
 
     return 0;
 }
 
-void GetSubtreeElements(struct TrieNode* node, struct Vector* vec)
+int ExtractSubtree(char* channel, Vector* answer)
 {
-    for (int i = 0; i < node->universal_elements.size; i++) {
-        UniversalType* element = GetVectorElement(&(node->universal_elements), i);
-        PushBack(vec, element);
+    int l = strlen(channel);
+    
+    if (l == 0)
+        return EMPTY_CHANNEL_ERROR;
+    if (channel[0] != '/')
+        return INVALID_CHANNEL_NAME;
+    
+    TrieNode* node = &root;
+
+    for (int i = 0; i < l; i++) {
+        int char_id = GetCharId(channel[i]);
+        if (char_id >= SIGMA)
+            return INVALID_CHANNEL_NAME;
+
+        // If node doesn't exist I have to return.
+        if (!node->children[char_id])
+            return 0;
+        
+        node = node->children[char_id];
     }
 
-    for (int i = 0; i < SIGMA; i++)
-        if (node->children[i])
-            GetSubtreeElements(node->children[i], vec);
-}
-
-struct Vector ExtractSubtree(char* channel)
-{
-    struct Vector ans = CreateEmptyVector(sizeof (UniversalType));
-    
-    // TODO: DO DFS FROM channel
-    GetSubtreeElements(&root, &ans);
-    return ans;
+    int err = GetSubtreeElements(&root, answer);
+    return err;
 }

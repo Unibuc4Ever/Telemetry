@@ -12,8 +12,15 @@ typedef struct {
     int size;
 } UniversalType;
 
-UniversalType* CreateUniversalType(void* data, int size);
+/**
+ * Allocates a new UniversalType, with a given
+ * data and length.
+ */
+int CreateUniversalType(UniversalType** t, void* data, int size);
 
-void DelteUniversalType(UniversalType* type);
+/**
+ * Frees the alocated universaltype.
+ */
+int DeleteUniversalType(UniversalType** t);
 
 #endif // UNIVERSAL_TYPE_

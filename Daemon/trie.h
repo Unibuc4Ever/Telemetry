@@ -17,6 +17,6 @@ int Insert(char* channel, UniversalType element);
 /**
  * Returns all the UniversalTypes from within the Trie.
  */
-struct Vector ExtractSubtree(char* channel);
+int ExtractSubtree(char* channel, Vector* answer);
 
 #endif // TRIE_
