@@ -7,10 +7,13 @@
  * Este utilizat pentru structuri care nu au nevoie sa stie
  * ce anume salveaza, in mod black-box.
  */
-
-struct UniversalType {
+typedef struct {
     void* data;
     int size;
-};
+} UniversalType;
+
+UniversalType* CreateUniversalType(void* data, int size);
+
+void DelteUniversalType(UniversalType* type);
 
 #endif // UNIVERSAL_TYPE_

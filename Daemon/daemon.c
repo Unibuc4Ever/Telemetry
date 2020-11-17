@@ -8,16 +8,25 @@
 #include <syslog.h>
 #include <string.h>
 
+#include "vector.h"
+#include "universal_type.h"
+#include "trie.h"
+
 int ReceiveMessage(char* channel, char* message)
 {
+    UniversalType *container = malloc(sizeof container);
 
 }
 
 int RegisterToken(int token, char* channel)
 {
-    
+
 }
 
+void ReceiveMessageToToken(int token, char* message)
+{
+
+}
 
 int main(int argv, char* args[]) {
     

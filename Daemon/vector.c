@@ -66,5 +66,6 @@ void DeleteVector(struct Vector* v)
     // Clear memory if it exists, and set 0.
     if (v->v)
         free(v->v);
-    v->v = v->allocated = v->size = 0;
+    v->v = NULL;
+    v->allocated = v->size = 0;
 }

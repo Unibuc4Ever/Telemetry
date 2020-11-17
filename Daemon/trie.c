@@ -14,8 +14,9 @@ struct TrieNode {
 struct TrieNode* CreateTrieNode()
 {
     struct TrieNode* nod = malloc(sizeof nod);
-    nod->universal_elements = CreateEmptyVector(sizeof (struct UniversalType));
-    memset(nod->children, nod->children + SIGMA, 0);
+    nod->universal_elements = CreateEmptyVector(sizeof (UniversalType));
+    memset(nod->children, 0, sizeof nod->children);
+    return nod;
 }
 
 int GetCharId(char c)
@@ -24,16 +25,18 @@ int GetCharId(char c)
         return c - 'a';
     if ('A' <= c && c <= 'Z')
         return 26 + c - 'A';
-    if ('0' <= c <= '9')
+    if ('0' <= c && c <= '9')
         return 2 * 26 + c - '0';
     return 2 * 26 + 10;
 }
 
-int Insert(char* channel, struct UniversalType element)
+int Insert(char* channel, UniversalType element)
 {
     struct TrieNode* node = &root;
     int l = strlen(channel);
 
+    if (l == 0)
+        return 101;
     if (channel[0] != '/')
         return 100;
     
@@ -55,7 +58,7 @@ int Insert(char* channel, struct UniversalType element)
 void GetSubtreeElements(struct TrieNode* node, struct Vector* vec)
 {
     for (int i = 0; i < node->universal_elements.size; i++) {
-        struct UniversalType* element = GetVectorElement(&(node->universal_elements), i);
+        UniversalType* element = GetVectorElement(&(node->universal_elements), i);
         PushBack(vec, element);
     }
 
@@ -66,7 +69,9 @@ void GetSubtreeElements(struct TrieNode* node, struct Vector* vec)
 
 struct Vector ExtractSubtree(char* channel)
 {
-    struct Vector ans = CreateEmptyVector(sizeof (struct UniversalType));
+    struct Vector ans = CreateEmptyVector(sizeof (UniversalType));
     
+    // TODO: DO DFS FROM channel
     GetSubtreeElements(&root, &ans);
+    return ans;
 }
