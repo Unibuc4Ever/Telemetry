@@ -7,42 +7,96 @@
 #include <sys/wait.h>
 #include <errno.h>
 
-// Channel used for sending messages to the daemon.
-char DAEMON_FIFO_CHANNEL[] = "/tmp/TelemetryRequests";
+#include "fifo_parser.h"
 
 // Wheter InitializeTelemetry was called or not.
 int initialized;
 
-// File descriptor of the daemon's communication pipe.
-int daemon_fd;
+FifoParser daemon_fifo, personal_fifo;
+
+int GenerateRandomName()
+{
+    static int cnt = 1;
+    return getpid() + cnt++;
+}
 
 int InitializeTelemetry()
 {
     if (initialized)
         return 0;
 
-    daemon_fd = open(DAEMON_FIFO_CHANNEL, O_WRONLY);
-    if (daemon_fd == -1)
-        return -1; // TODO: see what happends
+    // Channel used for sending messages to the daemon.
+    char DAEMON_FIFO_CHANNEL[] = "/tmp/TelemetryRequests";
+    char PERSONAL_FIFO_CHANNEL[100] = "/tmp/TelemetryClient/";
+
+    int err = FifoInit(&daemon_fifo, DAEMON_FIFO_CHANNEL, 0);
+    
+    if (err)
+        return err;
+
+    // Create and open FIFO.
+    AppendInt(PERSONAL_FIFO_CHANNEL + strlen(PERSONAL_FIFO_CHANNEL), getpid());
+    err = FifoInit(&personal_fifo, PERSONAL_FIFO_CHANNEL, 1);
+
+    if (err)
+        return err;
 
     initialized = 1;
+    printf("Finished initialization!\n");
+    fflush(stdout);
     return 0;
 }
 
 int BroadcastTelemetry(const char* channel, const char* message)
 {
+
     if (!initialized) {
         int x = InitializeTelemetry();
         if (x)
             return x;
     }
 
-    // Now I'm just throwing all the content to the pipe
-    char space[] = " ";
-    write(daemon_fd, channel, strlen(channel));
-    write(daemon_fd, space, strlen(space));
-    write(daemon_fd, message, strlen(message));
-    write(daemon_fd, space, strlen(space));
+    // char broadcast_fifo[100] = "/tmp/TelemetryBroadcast/";
+    // ParseInt(GenerateRandomName(), broadcast_fifo + strlen(broadcast_fifo));
+
+    // int stat = mkfifo(DAEMON_FIFO_CHANNEL, S_IRUSR | S_IWUSR);
+    // if (stat == -1) {
+    //     printf("Unable to open pipe!");
+    //     return -1;
+    // }
+
+    // int broadcast_fd = open(DAEMON_FIFO_CHANNEL, O_WRONLY);
+    // if (broadcast_fd == -1)
+    //     return -1;
+
+    // char number[100];
+    // char enter[] = "\n";
+
+    // memset(number, 0, sizeof number);
+    // ParseInt(1, number);
+    // number[strlen(number)] = '\n';
+    // write(broadcast_fd, number, strlen(number));
+
+    // memset(number, 0, sizeof number);
+    // ParseInt(strlen(channel), number);
+    // number[strlen(number)] = '\n';
+    // write(broadcast_fd, number, strlen(number));
+
+    // write(broadcast_fd, channel, strlen(channel));
+    // write(broadcast_fd, enter, 1);
+
+    // memset(number, 0, sizeof number);
+    // ParseInt(strlen(message), number);
+    // number[strlen(number)] = '\n';
+    // write(broadcast_fd, number, strlen(number));
+
+    // write(broadcast_fd, message, strlen(message));
+    // write(broadcast_fd, enter, 1);
+
+    // close(broadcast_fd);
+    
+    // broadcast_fifo[strlen(broadcast_fifo)] = '\n';
+    // write(daemon_fd, broadcast_fifo, sizeof broadcast_fifo);
 
     return 0;
 }

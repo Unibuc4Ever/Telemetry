@@ -35,30 +35,28 @@ O sa folosim pipe-uri, mai precis FIFO.
 Tip 1: Broadcast -- Cerere de la client la daemon
 
 ``` log
-PID=XXXX
-Broadcast
-ChannelLength=XXXX
-Channel=XXXX
-MessageLenght=XXXX
-Message=XXXX
+1
+channel_length
+channel
+message_length
+message
 ```
 
 Tip 2: Cerere de callback -- Cerere de la client la daemon
 
 ``` log
-PID=XXXX
-RegisterCallback
-ChannelLength=XXXX
-Channel=XXXX
-Token=XXXX
+2
+token
+channel_length
+channel
 ```
 
 Tip 3: Callback -- De la daemon la client
 
 ``` log
-Token=XXXX
-ChannelLength=XXXX
-Channel=XXXX
-MessageLenght=XXXX
-Message=XXXX
+token
+channel_length
+channel
+message_length
+message
 ```
