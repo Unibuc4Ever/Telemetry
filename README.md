@@ -17,25 +17,48 @@ Proiectul cere crearea unui `daemon` care sa stie sa primeasca / dea broadcast l
 Fiecare program poate prin intermediul unei librarii sa comunice cu daemonul.
 Lista de functii disponibile poate fi gasita [aici](Library/telemetry.h).
 
-## Functionarea interna
-### Daemon
-`Daemonul` primeste prin cv magie neagra doua tipuri de mesaje:
-1. Tuplul `(PID, callback_id)`, care reprezinta:
-    * Procesul care doreste sa integistreze callbackul este `PID`.
-    * ID-ul callbackului pe care procesul il doreste este `callback_id`.
-2. Tuplul `(PID, channel, message)`, care reprezinta:
-    * Procesul care a lansat broadcastul este procesul `PID`.
-    * Canalul pe care e dat broadcastul este canalul `channel`.
-    * Mesajul trimis este mesajul `message`.
+## Comunicarea dintre Daemon si lirarie
+O sa folosim pipe-uri, mai precis FIFO.
 
-Functionarea `daemon`-ului este urmatoarea:
-1. Daemonul memoreaza toate inregistrarile de callback pe care le primeste.\
-Din cand in cand, `daemon`-ul scaneaza toate procesele, pentru a vedea daca anumite callbackuri nu mai exista (le-a murit procesul).
-2. Cand `daemon`-ul primeste un broadcast, verifica callbackurile care trebuie apelate, si le apeleaza.
+* Daemonul o sa creeze un FIFO numit '/tmp/TelemetryRequests/'.
+* Flowul de comunicare intre Daemon si procese e urmatorul:
+    * Daca un proces vrea sa ii transmita ceva Daemonului, o sa scrie requestul
+      intr-un FIFO (/temp), si ii transmite numele Daemonului, care
+      il citeste, si dupa il sterge.
+    * Daca daemonul vrea sa transmita ceva unui proces, ii scrie acestuia in
+      FIFO-ul numit '/tmp/TelemetryClient/%PID%', daca acesta este deschis.
+    * Cand FIFO-ul care corespunde unui proces se inchide, Daemonul considera ca s-a
+      terminat procesul, si sunt sterse toate recordurile ale acestuia.
 
-## Libraria
-Libraria este un front-end pentru interactiunea cu `daemon`-ul.
-Libraria face:
-1. Cand este initializata, libraria deschide conectiunea cu `daemon`-ul.
-2. Cand se primeste cererea de inregistrare / desinregistrare a unui callback, libraria salveaza callbackul, ii asociaza un ID, si trimite cererea la `daemon`.
-3. Cand libraria afla de la `daemon` ca trebuie apelat un callback, il apeleaza cu mesajul primit.
+## Tipuri de mesage de la client la Daemon
+
+Tip 1: Broadcast -- Cerere de la client la daemon
+
+``` log
+PID=XXXX
+Broadcast
+ChannelLength=XXXX
+Channel=XXXX
+MessageLenght=XXXX
+Message=XXXX
+```
+
+Tip 2: Cerere de callback -- Cerere de la client la daemon
+
+``` log
+PID=XXXX
+RegisterCallback
+ChannelLength=XXXX
+Channel=XXXX
+Token=XXXX
+```
+
+Tip 3: Callback -- De la daemon la client
+
+``` log
+Token=XXXX
+ChannelLength=XXXX
+Channel=XXXX
+MessageLenght=XXXX
+Message=XXXX
+```

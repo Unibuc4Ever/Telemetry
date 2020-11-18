@@ -11,6 +11,7 @@
 #include "vector.h"
 #include "universal_type.h"
 #include "trie.h"
+#include "unit_tests.h"
 
 int BroadcastMessage(char* channel, char* message)
 {
@@ -34,6 +35,9 @@ int ReceiveMessageToToken(int token, char* message)
 }
 
 int main(int argv, char* args[]) {
+    StartUnitTests();
+    return 0;
+    
     if (argv || args) {
         /// idk
     }

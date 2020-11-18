@@ -45,6 +45,9 @@ int PushBack(Vector* v, void* elem)
         // Clear old memory.
         free(v->v);
 
+        // Update memory.
+        v->v = new_location;
+        
         // Update allocated memory size.
         v->allocated = new_size;
     }

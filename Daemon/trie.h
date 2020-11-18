@@ -7,16 +7,18 @@
 /**
  * Allowed characters in the channel's name:
  * [a-z][A-Z][0-9]/
+ * 
+ * Channel has to ALWAYS END WITH '/'!!
  */
 
 /**
  * Add an UniversalType at a certain path within the Trie.
  */
-int Insert(char* channel, UniversalType element);
+int TrieInsert(char* channel, UniversalType element);
 
 /**
  * Returns all the UniversalTypes from within the Trie.
  */
-int ExtractSubtree(char* channel, Vector* answer);
+int TrieExtractSubtree(char* channel, Vector* answer);
 
 #endif // TRIE_

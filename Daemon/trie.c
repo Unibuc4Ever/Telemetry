@@ -36,7 +36,7 @@ int GetCharId(char c)
     return 2 * 26 + 10;
 }
 
-int Insert(char* channel, UniversalType element)
+int TrieInsert(char* channel, UniversalType element)
 {
     TrieNode* node = &root;
     int l = strlen(channel);
@@ -85,7 +85,7 @@ int GetSubtreeElements(TrieNode* node, Vector* vec)
     return 0;
 }
 
-int ExtractSubtree(char* channel, Vector* answer)
+int TrieExtractSubtree(char* channel, Vector* answer)
 {
     int l = strlen(channel);
     
