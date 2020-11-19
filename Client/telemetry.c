@@ -181,10 +181,39 @@ int RegisterCallback(const char* channel, void(*callback)(const char* channel, c
 
 int RemoveRegisteredCallback(int callback_id)
 {
+    if (!initialized) {
+        int x = InitializeTelemetry();
+        if (x)
+            return x;
+    }
+
     int err = pthread_mutex_lock(&callbacks_is_busy);
     err |= TreapErase(&callbacks, callback_id);
     pthread_mutex_unlock(&callbacks_is_busy);
+    if (err)
+        return err;
+
+    static int counter = 0;
+    char broadcast_fifo[100] = "/tmp/TelemetryBroadcastNr";
+    AppendInt(broadcast_fifo + strlen(broadcast_fifo), GenerateRandomName());
+
+    FifoParser parser;
+    counter++;
+    err = FifoInit(&parser, broadcast_fifo, 1);
+    
+    if (err)
+        return err;
+
+    err |= PrintInt(&parser, 3);
+    err |= PrintInt(&parser, callback_id);
+    err |= PrintInt(&parser, personal_fifo_id);
+    // err |= FifoClose(&parser); -> TODO: how to fix this
+
+    if (!err)
+        err |= PrintString(&daemon_fifo, broadcast_fifo, strlen(broadcast_fifo));
+
     return err;
+    
 }
 
 int CloseTelemetry()

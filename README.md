@@ -52,6 +52,14 @@ channel_length
 channel
 ```
 
+Tip 3: Cerere de revocare callback -- Cerere de la client la daemon
+
+``` log
+3
+token
+personal_fifo_id
+```
+
 Tip 3: Callback -- De la daemon la client
 
 ``` log

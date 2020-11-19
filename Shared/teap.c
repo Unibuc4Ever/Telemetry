@@ -70,8 +70,8 @@ int TreapFind(const Treap* t, int val, void** ans)
 
 int TreapInsert(Treap** t, int val, void* data)
 {
-    void** ans = NULL;
-    if (!TreapFind(*t, val, ans))
+    void* ans = NULL;
+    if (!TreapFind(*t, val, &ans))
         return -1; // Already exists.
     
     TPair pair = Split(*t, val);
@@ -90,8 +90,8 @@ int TreapInsert(Treap** t, int val, void* data)
 int TreapErase(Treap** t, int val)
 {
     Treap* nod = *t;
-    void** ans = NULL;
-    if (TreapFind(nod, val, ans))
+    void* ans = NULL;
+    if (TreapFind(nod, val, &ans))
         return -1; // Already exists.
     
     TPair pair1 = Split(nod, val);

@@ -75,6 +75,23 @@ void ProcessCallbackRequest(FifoParser* parser)
     SendCallback(personal_fifo_id, token, channel, "Hello There!");
 }
 
+void ProcessCallbackCancelRequest(FifoParser* parser)
+{
+    printf("Received callback cancel request:\n");
+    int personal_fifo_id, token;
+
+    int err;
+    err = ParseInt(parser, &token);
+    if (!err)
+        err |= ParseInt(parser, &personal_fifo_id);
+    
+    printf("Received callback cancel request at:\n");
+    printf("    token: %d\n", token);
+    printf("    fifo_number: %d\n", personal_fifo_id);
+    fflush(stdout);
+
+    // TODO:
+}
 
 // Processes a request.
 // A request is basically the path of a FIFO file.
@@ -93,6 +110,8 @@ int ProcessRequest(char* request)
         ProcessBroadcast(&request_parser);
     else if (!err && type == 2)
         ProcessCallbackRequest(&request_parser);
+    else if (!err && type == 3)
+        ProcessCallbackCancelRequest(&request_parser);
     else
         err = 1;
 
