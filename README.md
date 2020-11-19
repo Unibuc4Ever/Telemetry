@@ -47,6 +47,7 @@ Tip 2: Cerere de callback -- Cerere de la client la daemon
 ``` log
 2
 token
+personal_fifo_id
 channel_length
 channel
 ```

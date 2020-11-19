@@ -15,8 +15,12 @@ int InitializeTelemetry();
 int BroadcastTelemetry(const char* channel, const char* message);
 
 // Register a callback function.
+// -1 if error while registering.
+// ID of the callback if not.
 int RegisterCallback(const char* channel, void(*callback)(const char* channel, const char* message));
 
+// Remove a registered callback from the list.
+int RemoveRegisteredCallback(int callback_id);
 
 // Finish communication with the daemon.
 int CloseTelemetry();

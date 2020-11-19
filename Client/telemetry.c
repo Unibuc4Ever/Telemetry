@@ -8,16 +8,20 @@
 #include <errno.h>
 
 #include "fifo_parser.h"
+#include "treap.h"
 
 // Wheter InitializeTelemetry was called or not.
 int initialized;
-
+// DS storing all the callbacks.
+Treap* callbacks;
+// Parsers.
 FifoParser daemon_fifo, personal_fifo;
+int personal_fifo_id;
 
 int GenerateRandomName()
 {
     static int cnt = 1;
-    return getpid() + cnt++;
+    return getpid() * 1000000 + cnt++;
 }
 
 int InitializeTelemetry()
@@ -35,7 +39,8 @@ int InitializeTelemetry()
         return err;
 
     // Create and open FIFO.
-    AppendInt(PERSONAL_FIFO_CHANNEL + strlen(PERSONAL_FIFO_CHANNEL), getpid());
+    personal_fifo_id = getpid();
+    AppendInt(PERSONAL_FIFO_CHANNEL + strlen(PERSONAL_FIFO_CHANNEL), personal_fifo_id);
     err = FifoInit(&personal_fifo, PERSONAL_FIFO_CHANNEL, 1);
 
     if (err)
@@ -64,7 +69,7 @@ int BroadcastTelemetry(const char* channel, const char* message)
     if (err)
         return err;
 
-    err = PrintInt(&parser, 1);
+    err |= PrintInt(&parser, 1);
     err |= PrintInt(&parser, strlen(channel));
     err |= PrintString(&parser, channel, strlen(channel));
     err |= PrintInt(&parser, strlen(message));
@@ -79,14 +84,45 @@ int BroadcastTelemetry(const char* channel, const char* message)
 
 int RegisterCallback(const char* channel, void(*callback)(const char* channel, const char* message))
 {
-    int x = channel || callback;
-    x++;
     if (!initialized) {
         int x = InitializeTelemetry();
         if (x)
             return x;
     }
-    return 0;
+
+    static int counter = 0;
+    char broadcast_fifo[100] = "/tmp/TelemetryBroadcastNr";
+    AppendInt(broadcast_fifo + strlen(broadcast_fifo), GenerateRandomName());
+
+    FifoParser parser;
+    counter++;
+    int err = FifoInit(&parser, broadcast_fifo, 1);
+    
+    if (err)
+        return err;
+
+    err |= PrintInt(&parser, 2);
+    err |= PrintInt(&parser, counter);
+    err |= PrintInt(&parser, personal_fifo_id);
+    err |= PrintInt(&parser, strlen(channel));
+    err |= PrintString(&parser, channel, strlen(channel));
+    err |= FifoClose(&parser);
+
+    if (!err)
+        err |= PrintString(&daemon_fifo, broadcast_fifo, strlen(broadcast_fifo));
+
+    // Save callback in DS
+    if (!err)
+        err |= TreapInsert(&callbacks, counter, callback);
+
+    if (err)
+        return -1;
+    return counter;
+}
+
+int RemoveRegisteredCallback(int callback_id)
+{
+    return TreapErase(&callbacks, callback_id);
 }
 
 int CloseTelemetry()
@@ -95,6 +131,7 @@ int CloseTelemetry()
         FifoClose(&daemon_fifo);
         FifoClose(&personal_fifo);
         initialized = 0;
+        ClearTreap(&callbacks);
         return 0;
     }
     return 1;
