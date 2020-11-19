@@ -13,12 +13,15 @@ int main()
         exit(x);
     }
 
+    RegisterCallback("/my/personal/path/", NULL);
+
+    return 0;
+
     while (1) {
         char a[100], b[100];
         memset(a, 0, sizeof a);
         memset(b, 0, sizeof b);
         scanf("%s%s", a, b);
         printf("Status: %d\n", BroadcastTelemetry(a, b));
-
     }
 }

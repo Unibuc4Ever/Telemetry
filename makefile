@@ -7,6 +7,7 @@ SHARED_LIB:=-IShared
 SANITIZER:=-fsanitize=address,undefined,signed-integer-overflow
 WARNINGS:=-Wall -Wextra
 
+all: client daemon
 daemon: 
 	$(CC) $(FLAGS) $(SANITIZER) $(WARNINGS) $(SHARED_LIB) $(SHARED_CFILES) $(DAEMON_CFILES) -o daemon.out
 client: 

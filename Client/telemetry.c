@@ -21,7 +21,7 @@ int personal_fifo_id;
 int GenerateRandomName()
 {
     static int cnt = 1;
-    return getpid() * 1000000 + cnt++;
+    return getpid() * 1000 + cnt++;
 }
 
 int InitializeTelemetry()
@@ -75,7 +75,7 @@ int BroadcastTelemetry(const char* channel, const char* message)
     err |= PrintInt(&parser, strlen(message));
     err |= PrintString(&parser, message, strlen(message));
 
-    err |= FifoClose(&parser);
+    // err |= FifoClose(&parser);
 
     if (!err)
         err |= PrintString(&daemon_fifo, broadcast_fifo, strlen(broadcast_fifo));
@@ -106,7 +106,7 @@ int RegisterCallback(const char* channel, void(*callback)(const char* channel, c
     err |= PrintInt(&parser, personal_fifo_id);
     err |= PrintInt(&parser, strlen(channel));
     err |= PrintString(&parser, channel, strlen(channel));
-    err |= FifoClose(&parser);
+    // err |= FifoClose(&parser); -> TODO: how to fix this
 
     if (!err)
         err |= PrintString(&daemon_fifo, broadcast_fifo, strlen(broadcast_fifo));

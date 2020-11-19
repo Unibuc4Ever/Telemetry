@@ -71,7 +71,7 @@ int ParseInt(FifoParser* parser, int* x)
         c = GetNextChar(parser);
         if (c < '0' || c > '9')
             break;
-        ans = 10 * ans + c - '9';
+        ans = 10 * ans + c - '0';
     }
     *x = ans;
     return 0;
@@ -103,10 +103,9 @@ int ParseWord(FifoParser* parser, char* s, int length_max)
 int PrintInt(FifoParser* parser, int x)
 {
     char number[11];
-    number[10] = '\n';
-    int p = 10;
+    int p = 11;
     if (x == 0) {
-        number[9] = '0';
+        number[10] = '0';
         p--;
     }
     while (x) {

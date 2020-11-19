@@ -75,7 +75,7 @@ int TreapInsert(Treap** t, int val, void* data)
         return -1; // Already exists.
     
     TPair pair = Split(*t, val);
-    Treap* nod = malloc(sizeof nod);
+    Treap* nod = malloc(sizeof(*nod));
     nod->st = nod->dr = NULL;
     nod->data = data;
     nod->val = val;
