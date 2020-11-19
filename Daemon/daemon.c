@@ -1,92 +1,46 @@
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
+/**
+ * This is not yet a full daemon, as it's still missing some important features.
+ * It's used for development purpuses.
+ */
+
+#include <stdio.h> 
+#include <string.h> 
+#include <fcntl.h> 
+#include <sys/stat.h> 
+#include <sys/types.h> 
+#include <unistd.h> 
+#include <sys/wait.h>
 #include <errno.h>
-#include <unistd.h>
-#include <syslog.h>
-#include <string.h>
 
-#include "vector.h"
-#include "universal_type.h"
-#include "trie.h"
-#include "unit_tests.h"
+#include "fifo_parser.h"
 
-int BroadcastMessage(char* channel, char* message)
+FifoParser daemon_parser;
+
+// Processes a request.
+// A request is basically the path of FIFO file.
+void ProcessRequest(char* request)
 {
-    if (channel || message)
-        return 0;
-    return 0;
+    // TODO:
+    printf("Received request \'%s\'!\n", request);
+    fflush(stdout);
 }
 
-int RegisterToken(int token, char* channel)
+int main()
 {
-    if (token || channel)
-        return 0;
-    return 0;
-}
-
-int ReceiveMessageToToken(int token, char* message)
-{
-    if (token || message)
-        return 0;
-    return 0;
-}
-
-int main(int argv, char* args[]) {
-    StartUnitTests();
-    return 0;
+    printf("Initialization of the Daemon...\n");
     
-    if (argv || args) {
-        /// idk
-    }
-    /* Our process ID and Session ID */
-    pid_t pid, sid;
-    
-    /* Fork off the parent process */
-    pid = fork();
-    if (pid < 0) {
-        exit(EXIT_FAILURE);
-    }
-    /* If we got a good PID, then
-        we can exit the parent process. */
-    if (pid > 0) {
-        exit(EXIT_SUCCESS);
+    int err = FifoInit(&daemon_parser, "/tmp/TelemetryRequests", 1);
+    if (err) {
+        printf("Unable to create pipe!");
+        return err;
     }
 
-    /* Change the file mode mask */
-    umask(0);
-            
-    /* Open any logs here */        
-            
-    /* Create a new SID for the child process */
-    sid = setsid();
-    if (sid < 0) {
-        /* Log the failure */
-        exit(EXIT_FAILURE);
-    }
-    
-
-    
-    /* Change the current working directory */
-    if ((chdir("/")) < 0) {
-        /* Log the failure */
-        exit(EXIT_FAILURE);
-    }
-    
-    /* Close out the standard file descriptors */
-    close(STDIN_FILENO);
-    close(STDOUT_FILENO);
-    close(STDERR_FILENO);
-    
-    /* Daemon-specific initialization goes here */
-    
-    /* The Big Loop */
+    // Listen for requests.
     while (1) {
-        /* Do some task here ... */
-        
-        sleep(30); /* wait 30 seconds */
-    }
-   exit(EXIT_SUCCESS);
-}
+        char request[1000];
+        ParseWord(&daemon_parser, request, 1000);
+
+        ProcessRequest(request);
+    } 
+    return 0; 
+} 

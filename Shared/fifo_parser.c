@@ -83,7 +83,21 @@ int ParseString(FifoParser* parser, char* s, int length)
         *s = GetNextChar(parser);
         s++;
     }
-    return 0;
+    int c = GetNextChar(parser);
+    return !(c == ' ' || c == '\n');
+}
+
+int ParseWord(FifoParser* parser, char* s, int length_max)
+{
+    for (int i = 0; i < length_max; i++) {
+        char c = GetNextChar(parser);
+        if (c == ' ' || c == '\n') {
+            s[i] = 0;
+            return i;
+        }
+        s[i] = c;
+    }
+    return length_max;
 }
 
 int PrintInt(FifoParser* parser, int x)

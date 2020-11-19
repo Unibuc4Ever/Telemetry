@@ -25,6 +25,10 @@ int ParseInt(FifoParser* parser, int* x);
 // Parse a string.
 int ParseString(FifoParser* parser, char* s, int length);
 
+// Parse a word (until a space or an enter).
+// Returns parsed length.
+int ParseWord(FifoParser* parser, char* s, int length_max);
+
 // Write an integer.
 int PrintInt(FifoParser* parser, int x);
 
