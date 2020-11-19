@@ -26,13 +26,12 @@ int FifoInit(FifoParser* parser, const char* path, int reset)
         unlink(path);
 
     // Try to create the file pipe.
-    int stat = mkfifo(path, O_RDWR);
+    int stat = mkfifo(path, S_IRUSR | S_IWUSR);
 
     if (stat == -1) {
         printf("Unable to create pipe!\n");
-        char message[100];
+        char message[] = "Error message: ";
         perror(message);
-        printf("Error message: %s\n", message);
     }
     else
         printf("Successfully created the pipe!\n");
@@ -42,10 +41,8 @@ int FifoInit(FifoParser* parser, const char* path, int reset)
     parser->fd = open(path, O_RDWR);
     if (parser->fd == -1) {
         printf("Unable to open file descriptor!\n");
-        char message[100];
+        char message[] = "Error message: ";
         perror(message);
-        printf("Error message: %s\n", message);
-        printf("Exiting...\n");
         return -1;
     }
     else
@@ -54,6 +51,16 @@ int FifoInit(FifoParser* parser, const char* path, int reset)
     memset(parser->buffer, 0, sizeof(parser->buffer));
     parser->p = 0;
     return 0;
+}
+
+int FifoClose(FifoParser* parser)
+{
+    if (parser->fd) {
+        close(parser->fd);
+        parser->fd = 0;
+        return 0;
+    }
+    return 1;
 }
 
 int ParseInt(FifoParser* parser, int* x)
@@ -93,14 +100,22 @@ int PrintInt(FifoParser* parser, int x)
         number[p] = '0' + x % 10;
         x /= 10;
     }
-    write(parser->fd, number + p, 11 - p);
-    return 0;
+    return PrintString(parser, number + p, 11 - p);
 }
 
-int PrintString(FifoParser* parser, char* s, int length)
+int PrintString(FifoParser* parser, const char* s, int length)
 {
-    write(parser->fd, s, length);
-    return 0;
+    int wr;
+    while (length) {
+        wr = write(parser->fd, s, length);
+        if (wr < 0)
+            return wr;
+        s += wr;
+        length -= wr;
+    }
+    char enter[] = "\n";
+    wr = write(parser->fd, enter, 1);
+    return (wr == 1 ? 0 : wr);
 }
 
 void AppendInt(char* s, int nr)

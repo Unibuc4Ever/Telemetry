@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "telemetry.h"
+#include "fifo_parser.h"
 
 int main()
 {
@@ -17,7 +18,7 @@ int main()
         memset(a, 0, sizeof a);
         memset(b, 0, sizeof b);
         scanf("%s%s", a, b);
-        BroadcastTelemetry(a, b);
+        printf("Status: %d\n", BroadcastTelemetry(a, b));
 
     }
 }
