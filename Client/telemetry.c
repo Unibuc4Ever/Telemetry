@@ -6,17 +6,66 @@
 #include <unistd.h> 
 #include <sys/wait.h>
 #include <errno.h>
+#include <pthread.h>
 
 #include "fifo_parser.h"
 #include "treap.h"
 
 // Wheter InitializeTelemetry was called or not.
 int initialized;
+
 // DS storing all the callbacks.
 Treap* callbacks;
+// Flag for not having multhreading issues.
+pthread_mutex_t callbacks_is_busy;
+
 // Parsers.
 FifoParser daemon_fifo, personal_fifo;
 int personal_fifo_id;
+
+// Thread used by the callback checker.
+pthread_t callback_thread;
+
+
+// Should see how to not make it exit too fast, and break stuff.
+void* CallbackTelemetryChecker(void* _)
+{
+    (void)(_);
+    // Just try to read stuff from personal_fifo.
+    while (1) {
+        int err, token, channel_length, message_length;
+        char channel[1000], message[1000];
+        err = ParseInt(&personal_fifo, &token);
+        if (!err)
+            err |= ParseInt(&personal_fifo, &channel_length);
+        if (!err)
+            err |= ParseString(&personal_fifo, channel, channel_length);
+        if (!err)
+            err |= ParseInt(&personal_fifo, &message_length);
+        if (!err)
+            err |= ParseString(&personal_fifo, message, message_length);
+        if (err) {
+            printf("Error while getting data from daemon: %d\n", err);
+            return NULL;
+        }
+        err = pthread_mutex_lock(&callbacks_is_busy);
+        if (err) {
+            printf("Unable to lock mutex: ");
+            perror(NULL);
+            return NULL;
+        }
+        void* data;
+        err = TreapFind(callbacks, token, &data);
+        pthread_mutex_unlock(&callbacks_is_busy);
+
+        printf("Received token %d from cannel %s, with message %s\n",
+            token, channel, message);
+        fflush(stdout);
+
+        void(*callback)(const char* channel, const char* message) = data;
+        (*callback)(channel, message);
+    }
+}
 
 int GenerateRandomName()
 {
@@ -46,7 +95,14 @@ int InitializeTelemetry()
     if (err)
         return err;
 
+    // Launching new thread.
+    err |= pthread_create(&callback_thread, NULL, CallbackTelemetryChecker, NULL);
+
+    if (err)
+        return err;
+
     initialized = 1;
+
     printf("Finished initialization!\n");
     fflush(stdout);
     return 0;
@@ -112,8 +168,11 @@ int RegisterCallback(const char* channel, void(*callback)(const char* channel, c
         err |= PrintString(&daemon_fifo, broadcast_fifo, strlen(broadcast_fifo));
 
     // Save callback in DS
-    if (!err)
+    if (!err) {
+        err |= pthread_mutex_lock(&callbacks_is_busy);
         err |= TreapInsert(&callbacks, counter, callback);
+        pthread_mutex_unlock(&callbacks_is_busy);
+    }
 
     if (err)
         return -1;
@@ -122,16 +181,20 @@ int RegisterCallback(const char* channel, void(*callback)(const char* channel, c
 
 int RemoveRegisteredCallback(int callback_id)
 {
-    return TreapErase(&callbacks, callback_id);
+    int err = pthread_mutex_lock(&callbacks_is_busy);
+    err |= TreapErase(&callbacks, callback_id);
+    pthread_mutex_unlock(&callbacks_is_busy);
+    return err;
 }
 
 int CloseTelemetry()
 {
     if (initialized) {
-        FifoClose(&daemon_fifo);
-        FifoClose(&personal_fifo);
+        int err = FifoClose(&daemon_fifo);
+        err |= FifoClose(&personal_fifo);
+        err |= ClearTreap(&callbacks);
+        pthread_cancel(callback_thread);
         initialized = 0;
-        ClearTreap(&callbacks);
         return 0;
     }
     return 1;

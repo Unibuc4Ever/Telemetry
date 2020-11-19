@@ -5,6 +5,11 @@
 #include "telemetry.h"
 #include "fifo_parser.h"
 
+void sample_f(const char* channel, const char* message)
+{
+    printf("\n\nHello!\nChannel: %s\nMessage: %s\n", channel, message);
+}
+
 int main()
 {
     int x = InitializeTelemetry();
@@ -13,7 +18,7 @@ int main()
         exit(x);
     }
 
-    RegisterCallback("/my/personal/path/", NULL);
+    RegisterCallback("/my/personal/path/", sample_f);
 
     return 0;
 

@@ -12,6 +12,21 @@
 
 FifoParser daemon_parser;
 
+void SendCallback(int PID, int token, char* channel, char* message)
+{
+    char personal_fifo_channel[100] = "/tmp/TelemetryClientNr";
+    AppendInt(personal_fifo_channel + strlen(personal_fifo_channel), PID);
+
+    FifoParser parser;
+    FifoInit(&parser, personal_fifo_channel, 0);
+
+    PrintInt(&parser, token);
+    PrintInt(&parser, strlen(channel));
+    PrintString(&parser, channel, strlen(channel));
+    PrintInt(&parser, strlen(message));
+    PrintString(&parser, message, strlen(message));
+}
+
 void ProcessBroadcast(FifoParser* parser)
 {
     printf("Received broadcast request:\n");
@@ -54,6 +69,10 @@ void ProcessCallbackRequest(FifoParser* parser)
     printf("    fifo_number: %d\n", personal_fifo_id);
     fflush(stdout);
 
+    printf("Sending callback1!\n");
+    fflush(stdout);
+
+    SendCallback(personal_fifo_id, token, channel, "Hello There!");
 }
 
 

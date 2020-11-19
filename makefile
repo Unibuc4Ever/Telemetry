@@ -3,7 +3,7 @@ FLAGS=-O0 -g
 DAEMON_CFILES:=$(shell find . | grep "\./Daemon.*c$$")
 CLIENT_CFILES:=$(shell find . | grep "\./Client.*c$$")
 SHARED_CFILES:=$(shell find . | grep "\./Shared.*c$$")
-SHARED_LIB:=-IShared
+SHARED_LIB:=-IShared -pthread
 SANITIZER:=-fsanitize=address,undefined,signed-integer-overflow
 WARNINGS:=-Wall -Wextra
 

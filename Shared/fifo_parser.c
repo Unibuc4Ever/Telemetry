@@ -83,6 +83,7 @@ int ParseString(FifoParser* parser, char* s, int length)
         *s = GetNextChar(parser);
         s++;
     }
+    *s = 0;
     int c = GetNextChar(parser);
     return !(c == ' ' || c == '\n');
 }
