@@ -5,17 +5,31 @@
 Proiectul este ales din lista disponibila [aici](https://cs.unibuc.ro/~pirofti/so/so-lab-proiect.pdf).
 Proiectul pe care l-am ales este proiectul #17.
 
+## Ce dorim sa facem pentru proiect
 
-## Ideea proiectului
-Proiectul este compus din doua componente diferite:
-1. Un `daemon` care ruleaza in fundal.
-2. Un set de librarii care sa poata conecta un program de C/C++ cu `daemon`-ul.
+### Ce stie sa faca produsul final
 
+Un program care ne foloseste produsul poate sa:
+1. Trimita (broadcast) un mesaj la un anumit canal, organizat ierarhic asemenea unui `path` in `Unix`.
+2. Accesarea ultimelor `x` mesaje trimise pe un anumit canal, sau un stramos de-al acestuia.
+3. Inregistrarea / stergerea unor functii de callback pe anumite canale, care vor fi apelata asincron (pe un `thread` nou) de fiecare data cand cineva broadcasteaza un mesaj pe canalul respectiv sau un stramos de-al sau.
 
-## Cerintele proiectului
-Proiectul cere crearea unui `daemon` care sa stie sa primeasca / dea broadcast la mesaje, date pe diferite canale.
-Fiecare program poate prin intermediul unei librarii sa comunice cu daemonul.
-Lista de functii disponibile poate fi gasita [aici](Library/telemetry.h).
+### Ce componente implementam
+
+Implementam doua componente.
+Prima este un daemon, care poate fi pornit de librare, care verifica daca daemonul ruleaza, si daca nu il porneste, manual, sau automat (de ex prin `systemctl`).
+A doua parte este o librarie implementata in `C`, care poate fi inclusa din orice program `C/C++`, care sa permita interactiunea cu daemonul.
+
+### Ce rol are fiecare componenta
+
+Daemonul are urmatorul rol:
+ * Este un element central al comunicarii, care nu este pair-to-pair ci client-to-daemon.
+ * Tine minte mesaje trimise pe diferite canale, mult dupa sfarsirea proceselor care au trimis acele mesaje.
+ * Tine minte o lista de callbackuri pentru fiecare proces, si le declanseaza cand este nevoie.
+
+Clientul are urmatorul rol:
+ * Este un middle-man intre utilizator si daemon, prezinta un API mai user-friendly.
+ * Constituie un "translation unit" care primeste de la daemon callbackurile declansate si le porneste el.
 
 ## Comunicarea dintre Daemon si lirarie
 O sa folosim pipe-uri, mai precis FIFO.
