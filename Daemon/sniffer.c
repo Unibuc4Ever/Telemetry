@@ -26,6 +26,10 @@ void SendCallback(int PID, int token, char* channel, char* message)
     PrintString(&parser, channel, strlen(channel));
     PrintInt(&parser, strlen(message));
     PrintString(&parser, message, strlen(message));
+
+    printf("Sent callback:\n");
+    printf("    PID: %d\n    Token: %d\n", PID, token);
+    printf("    Channel: %s\n    Message: %s\n", channel, message);
 }
 
 void ProcessBroadcast(FifoParser* parser)
@@ -49,6 +53,9 @@ void ProcessBroadcast(FifoParser* parser)
         return;
     }
 
+    printf("    Message length: %d\n    Message: %s\n", message_length, message);
+    printf("    Channel length: %d\n    Channel: %s\n", channel_length, channel);
+
     Callback* callbacks;
     int number_of_callbacks;
     err = StorageGetCallbacks(channel, &callbacks, &number_of_callbacks);
@@ -66,7 +73,6 @@ void ProcessBroadcast(FifoParser* parser)
 
 void ProcessCallbackRequest(FifoParser* parser)
 {
-    printf("Received callback request:\n");
     char channel[1000];
     int pid, token;
     memset(channel, 0, sizeof channel);
@@ -83,7 +89,7 @@ void ProcessCallbackRequest(FifoParser* parser)
     printf("Received callback request at:\n");
     printf("    channel: \'%s\'\n", channel);
     printf("    token: %d\n", token);
-    printf("    fifo_number (pid): %d\n", pid);
+    printf("    PID: %d\n", pid);
     fflush(stdout);
 
     Callback callback = { pid, token };
@@ -102,7 +108,7 @@ void ProcessCallbackCancelRequest(FifoParser* parser)
     
     printf("Received callback cancel request at:\n");
     printf("    token: %d\n", token);
-    printf("    fifo_number (pid): %d\n", pid);
+    printf("    PID: %d\n", pid);
     fflush(stdout);
 
     Callback callback = { pid, token };
@@ -113,7 +119,7 @@ void ProcessCallbackCancelRequest(FifoParser* parser)
 // A request is basically the path of a FIFO file.
 int ProcessRequest(char* request)
 {
-    printf("Received request \'%s\'!\n", request);
+    printf(" --- Received request \'%s\'!\n", request);
     fflush(stdout);
 
     FifoParser request_parser;

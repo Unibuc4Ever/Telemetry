@@ -16,7 +16,7 @@ CallbackList root;
 
 int StorageAdd(Callback callback, const char* channel)
 {
-    CallbackList node = malloc(sizeof(node));
+    CallbackList node = malloc(sizeof(*node));
     node->callback = callback;
     node->channel = CopyString(channel);
     node->next = root;

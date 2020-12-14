@@ -9,8 +9,11 @@
 
 void sample_f(const char* channel, const char* message)
 {
-    printf("\nHello! I'm a callback function called from:"
-           "\n    Channel: %s\n    Message: %s\n", channel, message);
+    printf("\n\n\nHello! I'm a callback function!!\n"
+           "I was called from:\n"
+           "    Channel: %s\n"
+           "    Message: %s\n", channel, message);
+    printf("\n\n $ ");
     fflush(stdout);
 }
 
