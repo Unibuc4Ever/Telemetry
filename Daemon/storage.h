@@ -10,4 +10,20 @@
  *      3. Request top X messages sent at a certain path
  */
 
+// Used to storing callbacks.
+typedef struct {
+    int PID, token;
+} Callback;
+
+// Adds a callback.
+int StorageAdd(Callback callback, const char* channel);
+
+// Removes a callback.
+int StorageRemove(Callback callback);
+
+// Returns all the callbacks at a certain path.
+int StorageGetCallbacks(const char* channel, Callback** callbacks, int *number_of_callbacks);
+
+
+
 #endif // DAEMON_STORAGE_

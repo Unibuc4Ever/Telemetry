@@ -32,6 +32,7 @@ Clientul are urmatorul rol:
  * Constituie un "translation unit" care primeste de la daemon callbackurile declansate si le porneste el.
 
 ## Comunicarea dintre Daemon si lirarie
+
 O sa folosim pipe-uri, mai precis FIFO.
 
 * Daemonul o sa creeze un FIFO numit '/tmp/TelemetryRequests/'.

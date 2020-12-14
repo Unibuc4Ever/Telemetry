@@ -9,6 +9,7 @@
 
 #include "sniffer.h"
 #include "fifo_parser.h"
+#include "storage.h"
 
 FifoParser daemon_parser;
 
@@ -43,21 +44,37 @@ void ProcessBroadcast(FifoParser* parser)
     if (!err)
         err |= ParseString(parser, message, message_length);
 
-    printf("Received channel: \'%s\' and message \'%s\'\n", channel, message);
-    fflush(stdout);
+    if (err) {
+        printf("Received error %d\n", err);
+        return;
+    }
+
+    Callback* callbacks;
+    int number_of_callbacks;
+    err = StorageGetCallbacks(channel, &callbacks, &number_of_callbacks);
+
+    // Nothing to do.
+    if (err) {
+        printf("Found no callbacks: %d\n", err);
+        return;
+    } 
+
+    for (int i = 0; i < number_of_callbacks; i++)
+        SendCallback(callbacks[i].PID, callbacks[i].token,
+                     channel, message);
 }
 
 void ProcessCallbackRequest(FifoParser* parser)
 {
     printf("Received callback request:\n");
     char channel[1000];
-    int personal_fifo_id, token;
+    int pid, token;
     memset(channel, 0, sizeof channel);
 
     int err, channel_length;
     err = ParseInt(parser, &token);
     if (!err)
-        err |= ParseInt(parser, &personal_fifo_id);
+        err |= ParseInt(parser, &pid);
     if (!err)
         err |= ParseInt(parser, &channel_length);
     if (!err)
@@ -66,31 +83,30 @@ void ProcessCallbackRequest(FifoParser* parser)
     printf("Received callback request at:\n");
     printf("    channel: \'%s\'\n", channel);
     printf("    token: %d\n", token);
-    printf("    fifo_number: %d\n", personal_fifo_id);
+    printf("    fifo_number (pid): %d\n", pid);
     fflush(stdout);
 
-    printf("Sending callback1!\n");
-    fflush(stdout);
-
-    SendCallback(personal_fifo_id, token, channel, "Hello There!");
+    Callback callback = { pid, token };
+    StorageAdd(callback, channel);
 }
 
 void ProcessCallbackCancelRequest(FifoParser* parser)
 {
     printf("Received callback cancel request:\n");
-    int personal_fifo_id, token;
+    int pid, token;
 
     int err;
     err = ParseInt(parser, &token);
     if (!err)
-        err |= ParseInt(parser, &personal_fifo_id);
+        err |= ParseInt(parser, &pid);
     
     printf("Received callback cancel request at:\n");
     printf("    token: %d\n", token);
-    printf("    fifo_number: %d\n", personal_fifo_id);
+    printf("    fifo_number (pid): %d\n", pid);
     fflush(stdout);
 
-    // TODO:
+    Callback callback = { pid, token };
+    StorageRemove(callback);
 }
 
 // Processes a request.
