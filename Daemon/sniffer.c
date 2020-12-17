@@ -9,18 +9,19 @@
 
 #include "sniffer.h"
 #include "fifo_parser.h"
-#include "storage.h"
+#include "callback_storage.h"
 
 FifoParser daemon_parser;
 
 void SendCallback(int PID, int token, char* channel, char* message)
 {
-    char personal_fifo_channel[100] = "/tmp/TelemetryClientNr";
+    char personal_fifo_channel[100] = "/tmp/TelemetryCallbackNr";
     AppendInt(personal_fifo_channel + strlen(personal_fifo_channel), PID);
 
     FifoParser parser;
     FifoInit(&parser, personal_fifo_channel, 0);
 
+    PrintInt(&parser, 1);
     PrintInt(&parser, token);
     PrintInt(&parser, strlen(channel));
     PrintString(&parser, channel, strlen(channel));
@@ -115,6 +116,11 @@ void ProcessCallbackCancelRequest(FifoParser* parser)
     StorageRemove(callback);
 }
 
+void ProcessHistoryRequest(FifoParser* parse)
+{
+    printf("Doing op nr 4\n");
+}
+
 // Processes a request.
 // A request is basically the path of a FIFO file.
 int ProcessRequest(char* request)
@@ -134,6 +140,8 @@ int ProcessRequest(char* request)
         ProcessCallbackRequest(&request_parser);
     else if (!err && type == 3)
         ProcessCallbackCancelRequest(&request_parser);
+    else if (!err && type == 4)
+        ProcessHistoryRequest(&request_parser);
     else
         err = 1;
 

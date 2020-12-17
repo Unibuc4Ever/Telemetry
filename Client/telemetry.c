@@ -20,12 +20,16 @@ Treap* callbacks;
 pthread_mutex_t callbacks_is_busy;
 
 // Parsers.
-FifoParser daemon_fifo, personal_fifo;
-int personal_fifo_id;
+static FifoParser daemon_fifo, personal_cb_fifo, personal_history_fifo;
+static int personal_fifo_id;
 
 // Thread used by the callback checker.
-pthread_t callback_thread;
+static pthread_t callback_thread;
 
+ // Channel used for sending messages to the daemon.
+static const char DAEMON_FIFO_CHANNEL[] = "/tmp/TelemetryRequests";
+static char PERSONAL_CB_CHANNEL[100] = "/tmp/TelemetryCallbackNr";
+static char PERSONAL_HISTORY_CHANNEL[100] = "/tmp/TelemetryHistoryNr";
 
 // Should see how to not make it exit too fast, and break stuff.
 void* CallbackTelemetryChecker(void* _)
@@ -33,17 +37,19 @@ void* CallbackTelemetryChecker(void* _)
     (void)(_);
     // Just try to read stuff from personal_fifo.
     while (1) {
-        int err, token, channel_length, message_length;
+        int err, token, channel_length, message_length, op_code = -1;
         char channel[1000], message[1000];
-        err = ParseInt(&personal_fifo, &token);
+        err = ParseInt(&personal_cb_fifo, &op_code);
         if (!err)
-            err |= ParseInt(&personal_fifo, &channel_length);
+            err |= ParseInt(&personal_cb_fifo, &token);
         if (!err)
-            err |= ParseString(&personal_fifo, channel, channel_length);
+            err |= ParseInt(&personal_cb_fifo, &channel_length);
         if (!err)
-            err |= ParseInt(&personal_fifo, &message_length);
+            err |= ParseString(&personal_cb_fifo, channel, channel_length);
         if (!err)
-            err |= ParseString(&personal_fifo, message, message_length);
+            err |= ParseInt(&personal_cb_fifo, &message_length);
+        if (!err)
+            err |= ParseString(&personal_cb_fifo, message, message_length);
         if (err) {
             printf("Error while getting data from daemon: %d\n", err);
             return NULL;
@@ -67,6 +73,12 @@ void* CallbackTelemetryChecker(void* _)
     }
 }
 
+int GetSyncHistory(const char* channel, int max_entries, 
+                   int* found_entries, char*** channels, char*** messages)
+{
+    return 0;
+}
+
 int GenerateRandomName()
 {
     static int cnt = 1;
@@ -79,18 +91,19 @@ int InitializeTelemetry()
         return 0;
 
     // Channel used for sending messages to the daemon.
-    char DAEMON_FIFO_CHANNEL[] = "/tmp/TelemetryRequests";
-    char PERSONAL_FIFO_CHANNEL[100] = "/tmp/TelemetryClientNr";
-
     int err = FifoInit(&daemon_fifo, DAEMON_FIFO_CHANNEL, 0);
     
     if (err)
         return err;
 
-    // Create and open FIFO.
     personal_fifo_id = getpid();
-    AppendInt(PERSONAL_FIFO_CHANNEL + strlen(PERSONAL_FIFO_CHANNEL), personal_fifo_id);
-    err = FifoInit(&personal_fifo, PERSONAL_FIFO_CHANNEL, 1);
+    // Create and open callback FIFO.
+    AppendInt(PERSONAL_CB_CHANNEL + strlen(PERSONAL_CB_CHANNEL), personal_fifo_id);
+    err = FifoInit(&personal_cb_fifo, PERSONAL_CB_CHANNEL, 1);
+
+    // Create and open history FIFO.
+    AppendInt(PERSONAL_HISTORY_CHANNEL + strlen(PERSONAL_HISTORY_CHANNEL), personal_fifo_id);
+    err |= FifoInit(&personal_history_fifo, PERSONAL_HISTORY_CHANNEL, 1);
 
     if (err)
         return err;
@@ -220,9 +233,13 @@ int CloseTelemetry()
 {
     if (initialized) {
         int err = FifoClose(&daemon_fifo);
-        err |= FifoClose(&personal_fifo);
-        err |= ClearTreap(&callbacks);
+        err |= FifoClose(&personal_cb_fifo);
+        err |= FifoClose(&personal_history_fifo);
+        
         pthread_cancel(callback_thread);
+        err |= ClearTreap(&callbacks);
+        unlink(PERSONAL_CB_CHANNEL);
+        unlink(PERSONAL_HISTORY_CHANNEL);
         initialized = 0;
         return 0;
     }

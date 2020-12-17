@@ -109,7 +109,7 @@ int TreapErase(Treap** t, int val)
 
 int ClearTreap(Treap** t)
 {
-    if (t == NULL)
+    if (*t == NULL)
         return 0;
     ClearTreap(&((*t)->st));
     ClearTreap(&((*t)->dr));
