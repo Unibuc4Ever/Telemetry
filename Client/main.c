@@ -22,7 +22,7 @@ int main()
     InitializeTelemetry();
 
     printf("Hello there!\nActions are:\n1. Broadcast message\n"
-           "2. Register Callback\n3. Delete Callback\n");
+           "2. Register Callback\n3. Delete Callback\n4. Close\n");
     
     while (1) {
         printf(" $ ");
@@ -54,6 +54,11 @@ int main()
             scanf("%d", &x);
             int err = RemoveRegisteredCallback(x);
             printf("Action finished with status %d\n", err);
+        }
+        else if (x == 4) {
+            printf("Closing ...\n");
+            CloseTelemetry();
+            break;
         }
         else
             printf("Action not recognized!\n");

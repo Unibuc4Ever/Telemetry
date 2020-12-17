@@ -80,7 +80,7 @@ int TreapInsert(Treap** t, int val, void* data)
     nod->data = data;
     nod->val = val;
     nod->g = 1;
-    nod->priority = rand() | (rand() >> 20);
+    nod->priority = rand() | ((unsigned int)rand() << 16);
 
     *t = Join(Join(pair.st, nod), pair.dr);
 
@@ -109,7 +109,7 @@ int TreapErase(Treap** t, int val)
 
 int ClearTreap(Treap** t)
 {
-    if (t == NULL)
+    if (*t == NULL)
         return 0;
     ClearTreap(&((*t)->st));
     ClearTreap(&((*t)->dr));
