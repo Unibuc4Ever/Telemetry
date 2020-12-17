@@ -12,24 +12,29 @@
 #include "treap.h"
 
 // Wheter InitializeTelemetry was called or not.
-int initialized;
+static int initialized;
 
 // DS storing all the callbacks.
-Treap* callbacks;
+static Treap* callbacks;
 // Flag for not having multhreading issues.
-pthread_mutex_t callbacks_is_busy;
+static pthread_mutex_t callbacks_is_busy;
 
 // Parsers.
-FifoParser daemon_fifo, personal_fifo;
-int personal_fifo_id;
+static FifoParser daemon_fifo, personal_fifo;
+static int personal_fifo_id;
 
 // Thread used by the callback checker.
-pthread_t callback_thread;
+static pthread_t callback_thread;
+
+ // Channel used for sending messages to the daemon.
+static const char DAEMON_FIFO_CHANNEL[] = "/tmp/TelemetryRequests";
+static char PERSONAL_FIFO_CHANNEL[100] = "/tmp/TelemetryClientNr";
 
 
 // Should see how to not make it exit too fast, and break stuff.
 void* CallbackTelemetryChecker(void* _)
 {
+    // not used operation
     (void)(_);
     // Just try to read stuff from personal_fifo.
     while (1) {
@@ -77,10 +82,6 @@ int InitializeTelemetry()
 {
     if (initialized)
         return 0;
-
-    // Channel used for sending messages to the daemon.
-    char DAEMON_FIFO_CHANNEL[] = "/tmp/TelemetryRequests";
-    char PERSONAL_FIFO_CHANNEL[100] = "/tmp/TelemetryClientNr";
 
     int err = FifoInit(&daemon_fifo, DAEMON_FIFO_CHANNEL, 0);
     
@@ -221,8 +222,10 @@ int CloseTelemetry()
     if (initialized) {
         int err = FifoClose(&daemon_fifo);
         err |= FifoClose(&personal_fifo);
-        err |= ClearTreap(&callbacks);
+        
         pthread_cancel(callback_thread);
+        err |= ClearTreap(&callbacks);
+        unlink(PERSONAL_FIFO_CHANNEL);
         initialized = 0;
         return 0;
     }
