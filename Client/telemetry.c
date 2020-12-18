@@ -58,29 +58,31 @@ char* GenerateRandomFifoName()
 int HandleCallback()
 {
     int token, channel_length, message_length;
-    char* channel, *message;
+    char* channel = NULL, *message = NULL;
     int err = 0;
     if (!err)
         err |= ParseInt(&personal_receive_fifo, &token);
     if (!err)
         err |= ParseInt(&personal_receive_fifo, &channel_length);
-    if (!err)
-        channel = malloc((channel_length + 1) * sizeof(char)),
+    if (!err) {
+        channel = malloc((channel_length + 1) * sizeof(char));
         err |= ParseString(&personal_receive_fifo, channel, channel_length);
+    }
     if (!err)
         err |= ParseInt(&personal_receive_fifo, &message_length);
-    if (!err)
-        message = malloc((message_length + 1) * sizeof(char)),
+    if (!err) {
+        message = malloc((message_length + 1) * sizeof(char));
         err |= ParseString(&personal_receive_fifo, message, message_length);
+    }
     if (err) {
         printf("Error while getting data from daemon: %d\n", err);
-        return err;
+        goto HandleCallbackReturn;
     }
     err = pthread_mutex_lock(&callbacks_is_busy);
     if (err) {
         printf("Unable to lock mutex: ");
         perror(NULL);
-        return errno;
+        goto HandleCallbackReturn;
     }
     void* data;
     err = TreapFind(callbacks, token, &data);
@@ -88,7 +90,7 @@ int HandleCallback()
     
     if (err) {
         printf("Couldn't find in treap the given token");
-        return err;
+        goto HandleCallbackReturn;
     }
 
     printf("Received token %d from cannel %s, with message %s\n",
@@ -98,7 +100,11 @@ int HandleCallback()
     void(*callback)(const char* channel, const char* message) = data;
     (*callback)(channel, message);
 
-    return 0;
+HandleCallbackReturn:
+
+    free(message);
+    free(channel);
+    return err;
 }
 
 int HandleHistory()
@@ -198,7 +204,7 @@ int GetSyncHistory(const char* path_channel, int max_entries,
 
     if (!err)
         err |= pthread_mutex_unlock(&receiving_history);
-        
+
     return err;
 }
 
