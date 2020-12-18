@@ -185,7 +185,7 @@ void ProcessHistoryRequest(FifoParser* parser)
     if (err)
         return ;
 
-    printf("Performed history request, nr results: %d", nr_entries);
+    printf("Performed history request, nr results: %d\n", nr_entries);
 
     SendHistory(personal_fifo_id, nr_entries, history_channels, history_messages);
 
