@@ -180,6 +180,7 @@ void ProcessHistoryRequest(FifoParser* parser)
     if (err)
         return ;
 
+    // TODO: Fix memory leak.
     printf("Performed history request, nr results: %d\n", nr_entries);
 
     SendHistory(personal_fifo_id, nr_entries, history_channels, history_messages);
