@@ -14,7 +14,7 @@
 #include "history_storage.h"
 #include "standard.h"
 
-#define CHECK_INTERVAL  (1 * 1 * 5) // 5 minutes
+#define CHECK_INTERVAL  (1 * 1 * 5) // in seconds
 
 FifoParser daemon_parser;
 
