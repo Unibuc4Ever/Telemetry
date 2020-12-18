@@ -41,13 +41,13 @@ O sa folosim pipe-uri, mai precis FIFO.
       intr-un FIFO (/temp), si ii transmite numele Daemonului, care
       il citeste, si dupa il sterge.
     * Daca daemonul vrea sa transmita ceva unui proces, ii scrie acestuia in
-      FIFO-ul numit '/tmp/TelemetryClient{PID}', daca acesta este deschis.
+      FIFO-ul numit '/tmp/TelemetryReceiveNr{PID}', daca acesta este deschis.
     * Cand FIFO-ul care corespunde unui proces se inchide, Daemonul considera ca s-a
       terminat procesul, si sunt sterse toate recordurile ale acestuia.
 
 ## Tipuri de mesage de la Client la Daemon
 
-Tip 1: Broadcast -- Cerere de la client la daemon
+Tip 1: Broadcast
 
 ``` log
 1
@@ -57,7 +57,7 @@ message_length
 message
 ```
 
-Tip 2: Cerere de callback -- Cerere de la client la daemon
+Tip 2: Cerere de callback
 
 ``` log
 2
@@ -67,7 +67,7 @@ channel_length
 channel
 ```
 
-Tip 3: Cerere de revocare callback -- Cerere de la client la daemon
+Tip 3: Cerere de revocare callback
 
 ``` log
 3
@@ -86,7 +86,7 @@ channel
 
 ## Tipuri de mesage de la Daemon la Client
 
-Tip 1: Callback -- mesaje date pe fifo de forma: `TelemetryCallbackNr{PID}`
+Tip 1: Callback
 
 ``` log
 1
@@ -97,7 +97,7 @@ message_length
 message
 ```
 
-Tip 2: History -- mesaje date pe fifo de forma: `TelemetryHistoryNr{PID}`
+Tip 2: History
 ``` log
 2
 count_history
