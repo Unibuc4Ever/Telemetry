@@ -83,8 +83,7 @@ int main()
             break;
         }
         else {
-            printf("Action not recognized!\n");
-            printf("Actions are:\n\
+            printf("Action not recognized! You can:\n\
             1. Broadcast message\n\
             2. Register Callback\n\
             3. Delete Callback\n\
