@@ -29,7 +29,7 @@ int FifoInit(FifoParser* parser, const char* path, int reset)
     int stat = mkfifo(path, S_IRUSR | S_IWUSR);
 
     if (stat == -1) {
-        printf("Unable to create pipe!\n");
+        printf("Unable to create pipe %s: Code: %d\n", path, errno);
         char message[] = "Error message: ";
         perror(message);
     }
@@ -153,4 +153,6 @@ void AppendInt(char* s, int nr)
         *s = v[p];
         s++;
     }
+    // not zero ending....
+    *s = 0;
 }

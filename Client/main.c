@@ -27,7 +27,7 @@ int main()
             2. Register Callback\n\
             3. Delete Callback\n\
             4. Request History\n\
-            5. Close");
+            5. Close\n");
     
     while (1) {
         printf(" $ ");
@@ -74,7 +74,7 @@ int main()
                                      &nr_found, &f_channels, &f_messages);
             printf("\n Found %d messages:\n", nr_found);
             for (int i = 0; i < nr_found; ++i) {
-                printf("channel: %s\nmessage: %s", f_channels[i], f_messages[i]);
+                printf("channel: %s\nmessage: %s\n", f_channels[i], f_messages[i]);
             }
             printf("Action finished with status %d\n", err);
         }
@@ -82,8 +82,15 @@ int main()
             CloseTelemetry();
             break;
         }
-        else
+        else {
             printf("Action not recognized!\n");
+            printf("Actions are:\n\
+            1. Broadcast message\n\
+            2. Register Callback\n\
+            3. Delete Callback\n\
+            4. Request History\n\
+            5. Close\n");
+        }
     }
 
     return 0;

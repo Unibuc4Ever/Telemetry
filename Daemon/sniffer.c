@@ -10,6 +10,7 @@
 #include "sniffer.h"
 #include "fifo_parser.h"
 #include "callback_storage.h"
+#include "history_storage.h"
 #include "standard.h"
 
 FifoParser daemon_parser;
@@ -17,7 +18,7 @@ FifoParser daemon_parser;
 static const char DAEMON_FIFO_CHANNEL[] = "/tmp/TelemetryRequests";
 static const char PERSONAL_RECEIVE_CHANNEL[] = "/tmp/TelemetryReceiveNr";
 
-void SendHistory(int PID, int entries_found, char** channels, char** messages)
+void SendHistory(int PID, int entries_found, const char** channels, const char** messages)
 {
     char personal_fifo_channel[100];
     strcpy(personal_fifo_channel, PERSONAL_RECEIVE_CHANNEL);
@@ -43,6 +44,8 @@ void SendCallback(int PID, int token, char* channel, char* message)
     char personal_fifo_channel[100];
     strcpy(personal_fifo_channel, PERSONAL_RECEIVE_CHANNEL);
     AppendInt(personal_fifo_channel + strlen(personal_fifo_channel), PID);
+
+    printf("before sending, fifo_name: add %d to %s\n", PID, personal_fifo_channel);
 
     FifoParser parser;
     FifoInit(&parser, personal_fifo_channel, 0);
@@ -85,9 +88,6 @@ void ProcessBroadcastRequest(FifoParser* parser)
     printf("    Message length: %d\n    Message: %s\n", message_length, message);
     printf("    Channel length: %d\n    Channel: %s\n", channel_length, channel);
 
-    /// Save the message in history
-    BroadcastStorageAdd(channel, message);
-
     /// Tell the clients to call their callbacks
     Callback* callbacks;
     int number_of_callbacks;
@@ -102,6 +102,9 @@ void ProcessBroadcastRequest(FifoParser* parser)
     for (int i = 0; i < number_of_callbacks; i++)
         SendCallback(callbacks[i].PID, callbacks[i].token,
                      channel, message);
+
+    /// Save the message in history
+    HistoryStorageAdd(channel, message);
 }
 
 void ProcessCallbackRequest(FifoParser* parser)
@@ -157,41 +160,55 @@ void ProcessHistoryRequest(FifoParser* parser)
 
     int err = 0;
     err |= ParseInt(parser, &personal_fifo_id);
+    printf("Parse line 1\n");
     err |= ParseInt(parser, &max_entries);
+    printf("Parse line 2\n");
     err |= ParseInt(parser, &channel_length);
+    printf("Parse line 3\n");
     if (!err)
-        err |= ParseString(parser, channel, strlen(channel));
+        err |= ParseString(parser, channel, channel_length);
+
+    printf("Finished parsing given arguments\n");
 
     if (err)
         return ;
+
+    printf("Read request input\n");
 
     // print request
     const char** history_channels;
     const char** history_messages;
     int nr_entries;
-    err |= BroadcastStorageQuery(max_entries, channel, 
+    err |= HistoryStorageQuery(max_entries, channel, 
                 &history_channels, &history_messages, &nr_entries);
 
     if (err)
         return ;
 
-    char client_fifo_channel[100];
-    strcpy(client_fifo_channel, PERSONAL_RECEIVE_CHANNEL);
-    AppendInt(client_fifo_channel, personal_fifo_id);
+    printf("Performed history request, nr results: %d", nr_entries);
+
+    SendHistory(personal_fifo_id, nr_entries, history_channels, history_messages);
+
+    // char client_fifo_channel[100];
+    // strcpy(client_fifo_channel, PERSONAL_RECEIVE_CHANNEL);
+    // AppendInt(client_fifo_channel + strlen(client_fifo_channel), personal_fifo_id);
     
-    FifoParser client;
-    FifoInit(&client, client_fifo_channel, 1);
+    // FifoParser client;
+    // FifoInit(&client, client_fifo_channel, 1);
 
-    PrintInt(&client, 2);
-    PrintInt(&client, nr_entries);
-    for (int i = 0; i < nr_entries; ++i) {
-        PrintInt(&client, strlen(history_channels[i]));
-        PrintString(&client, history_channels[i], strlen(history_channels[i]));
-        PrintInt(&client, strlen(history_messages[i]));
-        PrintString(&client, history_messages[i], strlen(history_messages[i]));
-    }
+    // PrintInt(&client, 2);
+    // PrintInt(&client, nr_entries);
+    // for (int i = 0; i < nr_entries; ++i) {
+    //     PrintInt(&client, strlen(history_channels[i]));
+    //     PrintString(&client, history_channels[i], strlen(history_channels[i]));
+    //     PrintInt(&client, strlen(history_messages[i]));
+    //     PrintString(&client, history_messages[i], strlen(history_messages[i]));
+    // }
 
-    FifoClose(&client);
+    // FifoClose(&client);
+
+    free(history_channels);
+    free(history_messages);
 }
 
 // Processes a request.

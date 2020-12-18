@@ -51,7 +51,8 @@ char* GenerateRandomFifoName()
 {
     static char random_fifo_name[100];
     strcpy(random_fifo_name, PERSONAL_QUERY_CHANNEL);
-    AppendInt(random_fifo_name, GenerateRandomInt());
+    AppendInt(random_fifo_name + strlen(random_fifo_name), GenerateRandomInt());
+    printf("Generate random fifo name: %s\n", random_fifo_name);
     return random_fifo_name;
 }
 
@@ -123,6 +124,7 @@ int HandleHistory()
             err |= ParseString(&personal_receive_fifo, pt_received_messages[i], lg_message);
     }
 
+    printf("Releasing mutex\n");
     err |= pthread_mutex_unlock(&receiving_history);
 
     return err;
@@ -169,6 +171,8 @@ int GetSyncHistory(const char* path_channel, int max_entries,
     if (err)
         return err;
 
+    printf("Locking mutex\n");
+
     // Send request to daemon, then wait for the mutex to signal we have the data
     err |= pthread_mutex_lock(&receiving_history);
 
@@ -181,10 +185,14 @@ int GetSyncHistory(const char* path_channel, int max_entries,
     if (!err)
         err |= PrintString(&daemon_fifo, random_fifo_name, strlen(random_fifo_name));
 
+    printf("Locking mutex again\n");
+
     // it will get unlocked only after HandleHistory finished
     if (!err)
         err |= pthread_mutex_lock(&receiving_history),
         err |= pthread_mutex_unlock(&receiving_history);
+
+    printf("Mutex unlocked again\n");
 
     *found_entries = nr_received;
     *channels = pt_received_channels;

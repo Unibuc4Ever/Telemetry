@@ -1,5 +1,5 @@
-#ifndef DAEMON_STORAGE_
-#define DAEMON_STORAGE_
+#ifndef CALLBACK_STORAGE_
+#define CALLBACK_STORAGE_
 
 /**
  * This storage allows the daemon to store all the registered callbacks
@@ -26,4 +26,4 @@ int StorageGetCallbacks(const char* channel, Callback** callbacks, int *number_o
 
 
 
-#endif // DAEMON_STORAGE_
+#endif // CALLBACK_STORAGE_
