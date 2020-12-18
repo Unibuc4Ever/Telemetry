@@ -3,6 +3,7 @@
 #include <fcntl.h> 
 #include <sys/stat.h> 
 #include <sys/types.h> 
+#include <time.h>
 #include <unistd.h> 
 #include <sys/wait.h>
 #include <errno.h>
@@ -13,7 +14,11 @@
 #include "history_storage.h"
 #include "standard.h"
 
+#define CHECK_INTERVAL  (1 * 5 * 60) // 5 minutes
+
 FifoParser daemon_parser;
+
+static int last_checked_seconds = 0;
 
 static const char DAEMON_FIFO_CHANNEL[] = "/tmp/TelemetryRequests";
 static const char PERSONAL_RECEIVE_CHANNEL[] = "/tmp/TelemetryReceiveNr";
@@ -219,6 +224,17 @@ int ProcessRequest(char* request)
     return err;
 }
 
+int PeriodicRoutine()
+{
+    int err = 0;
+    err |= CallbackDeleteForNonexistentPID();
+    err |= HistoryDeleteTooOldMessages();
+    
+    if (err)
+        printf("Error in routine, error: %d\n", err);
+    return err;
+}
+
 int StartRuntime()
 {
     printf("Initialization of the Daemon...\n");
@@ -236,6 +252,12 @@ int StartRuntime()
 
         printf("Processed with error %d\n", ProcessRequest(request));
         fflush(stdout);
+
+        int current_time_seconds = time(NULL);
+        if (current_time_seconds - last_checked_seconds > CHECK_INTERVAL) {
+            SomeRoutine();
+            last_checked_seconds = current_time_seconds;
+        }
     } 
     return 0; 
 }
