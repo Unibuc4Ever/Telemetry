@@ -132,27 +132,3 @@ int PrintString(FifoParser* parser, const char* s, int length)
     return (wr == 1 ? 0 : wr);
 }
 
-void AppendInt(char* s, int nr)
-{
-    if (nr == 0) {
-        s[0] = '0';
-        s[1] = 0;
-        return;
-    }
-
-    char v[10];
-    int p = 0;
-
-    while (nr) {
-        v[p++] = nr % 10 + '0';
-        nr /= 10;
-    }
-
-    while (p) {
-        p--;
-        *s = v[p];
-        s++;
-    }
-    // not zero ending....
-    *s = 0;
-}

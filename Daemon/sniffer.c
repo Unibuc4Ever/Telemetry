@@ -8,15 +8,8 @@
 #include <errno.h>
 
 #include "sniffer.h"
-#include "fifo_parser.h"
-#include "callback_storage.h"
-#include "history_storage.h"
-#include "standard.h"
 
 FifoParser daemon_parser;
-
-static const char DAEMON_FIFO_CHANNEL[] = "/tmp/TelemetryRequests";
-static const char PERSONAL_RECEIVE_CHANNEL[] = "/tmp/TelemetryReceiveNr";
 
 void SendHistory(int PID, int entries_found, const char** channels, const char** messages)
 {
