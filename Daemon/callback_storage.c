@@ -92,7 +92,7 @@ int CallbackDeleteForNonexistentPID()
         CallbackNode* curr = root->next, *previous = root;
         while (curr) {
             if (!isAlivePID(curr->callback.PID)) {
-                printf("Deleted (dead) callback PID/token:   %d | %d", 
+                printf(" --- Deleted (dead) callback PID/token:   %d | %d", 
                        curr->callback.PID, curr->callback.token);
                 previous->next = curr->next;
                 free(curr->channel);
