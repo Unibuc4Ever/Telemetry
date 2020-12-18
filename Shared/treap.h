@@ -12,7 +12,8 @@ struct __Treap
 {
     Treap *st, *dr;
     void* data;
-    int val, g, priority;
+    int val, g;
+    unsigned int priority;
 };
 
 // Find a value in a treap.

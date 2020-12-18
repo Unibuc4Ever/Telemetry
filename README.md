@@ -78,6 +78,7 @@ personal_fifo_id
 Tip 4: Cerere de history
 ``` log
 4
+personal_fifo_id
 history_count
 channel_length
 channel
@@ -85,7 +86,7 @@ channel
 
 ## Tipuri de mesage de la Daemon la Client
 
-Tip 1: Callback
+Tip 1: Callback -- mesaje date pe fifo de forma: `TelemetryCallbackNr{PID}`
 
 ``` log
 1
@@ -96,7 +97,7 @@ message_length
 message
 ```
 
-Tip 2: History
+Tip 2: History -- mesaje date pe fifo de forma: `TelemetryHistoryNr{PID}`
 ``` log
 2
 count_history

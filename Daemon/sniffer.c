@@ -10,12 +10,38 @@
 #include "sniffer.h"
 #include "fifo_parser.h"
 #include "callback_storage.h"
+#include "standard.h"
 
 FifoParser daemon_parser;
 
+static const char DAEMON_FIFO_CHANNEL[] = "/tmp/TelemetryRequests";
+static const char PERSONAL_RECEIVE_CHANNEL[] = "/tmp/TelemetryReceiveNr";
+
+void SendHistory(int PID, int entries_found, char** channels, char** messages)
+{
+    char personal_fifo_channel[100];
+    strcpy(personal_fifo_channel, PERSONAL_RECEIVE_CHANNEL);
+    AppendInt(personal_fifo_channel + strlen(personal_fifo_channel), PID);
+
+    FifoParser parser;
+    FifoInit(&parser, personal_fifo_channel, 0);
+
+    PrintInt(&parser, 2);
+    PrintInt(&parser, entries_found);
+    for (int i = 0; i < entries_found; ++i) {
+        PrintInt(&parser, strlen(channels[i]));
+        PrintString(&parser, channels[i], strlen(channels[i]));
+        PrintInt(&parser, strlen(messages[i]));
+        PrintString(&parser, messages[i], strlen(messages[i]));
+    }
+
+    FifoClose(&parser);
+}
+
 void SendCallback(int PID, int token, char* channel, char* message)
 {
-    char personal_fifo_channel[100] = "/tmp/TelemetryCallbackNr";
+    char personal_fifo_channel[100];
+    strcpy(personal_fifo_channel, PERSONAL_RECEIVE_CHANNEL);
     AppendInt(personal_fifo_channel + strlen(personal_fifo_channel), PID);
 
     FifoParser parser;
@@ -28,12 +54,14 @@ void SendCallback(int PID, int token, char* channel, char* message)
     PrintInt(&parser, strlen(message));
     PrintString(&parser, message, strlen(message));
 
+    FifoClose(&parser);
+
     printf("Sent callback:\n");
     printf("    PID: %d\n    Token: %d\n", PID, token);
     printf("    Channel: %s\n    Message: %s\n", channel, message);
 }
 
-void ProcessBroadcast(FifoParser* parser)
+void ProcessBroadcastRequest(FifoParser* parser)
 {
     printf("Received broadcast request:\n");
     char channel[1000], message[1000];
@@ -57,6 +85,10 @@ void ProcessBroadcast(FifoParser* parser)
     printf("    Message length: %d\n    Message: %s\n", message_length, message);
     printf("    Channel length: %d\n    Channel: %s\n", channel_length, channel);
 
+    /// Save the message in history
+    BroadcastStorageAdd(channel, message);
+
+    /// Tell the clients to call their callbacks
     Callback* callbacks;
     int number_of_callbacks;
     err = StorageGetCallbacks(channel, &callbacks, &number_of_callbacks);
@@ -116,9 +148,50 @@ void ProcessCallbackCancelRequest(FifoParser* parser)
     StorageRemove(callback);
 }
 
-void ProcessHistoryRequest(FifoParser* parse)
+void ProcessHistoryRequest(FifoParser* parser)
 {
-    printf("Doing op nr 4\n");
+    printf("Received History request:\n");
+    /// Read the request
+    int max_entries, channel_length, personal_fifo_id;
+    char channel[100];
+
+    int err = 0;
+    err |= ParseInt(parser, &personal_fifo_id);
+    err |= ParseInt(parser, &max_entries);
+    err |= ParseInt(parser, &channel_length);
+    if (!err)
+        err |= ParseString(parser, channel, strlen(channel));
+
+    if (err)
+        return ;
+
+    // print request
+    const char** history_channels;
+    const char** history_messages;
+    int nr_entries;
+    err |= BroadcastStorageQuery(max_entries, channel, 
+                &history_channels, &history_messages, &nr_entries);
+
+    if (err)
+        return ;
+
+    char client_fifo_channel[100];
+    strcpy(client_fifo_channel, PERSONAL_RECEIVE_CHANNEL);
+    AppendInt(client_fifo_channel, personal_fifo_id);
+    
+    FifoParser client;
+    FifoInit(&client, client_fifo_channel, 1);
+
+    PrintInt(&client, 2);
+    PrintInt(&client, nr_entries);
+    for (int i = 0; i < nr_entries; ++i) {
+        PrintInt(&client, strlen(history_channels[i]));
+        PrintString(&client, history_channels[i], strlen(history_channels[i]));
+        PrintInt(&client, strlen(history_messages[i]));
+        PrintString(&client, history_messages[i], strlen(history_messages[i]));
+    }
+
+    FifoClose(&client);
 }
 
 // Processes a request.
@@ -135,7 +208,7 @@ int ProcessRequest(char* request)
     err = ParseInt(&request_parser, &type);
 
     if (!err && type == 1)
-        ProcessBroadcast(&request_parser);
+        ProcessBroadcastRequest(&request_parser);
     else if (!err && type == 2)
         ProcessCallbackRequest(&request_parser);
     else if (!err && type == 3)
@@ -155,7 +228,7 @@ int StartRuntime()
 {
     printf("Initialization of the Daemon...\n");
     
-    int err = FifoInit(&daemon_parser, "/tmp/TelemetryRequests", 0);
+    int err = FifoInit(&daemon_parser, DAEMON_FIFO_CHANNEL, 0);
     if (err) {
         printf("Unable to create pipe!");
         return err;

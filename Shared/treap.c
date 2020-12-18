@@ -80,7 +80,7 @@ int TreapInsert(Treap** t, int val, void* data)
     nod->data = data;
     nod->val = val;
     nod->g = 1;
-    nod->priority = rand() | (rand() >> 20);
+    nod->priority = rand() | ((unsigned int)rand() << 16);
 
     *t = Join(Join(pair.st, nod), pair.dr);
 
