@@ -186,6 +186,7 @@ void ProcessHistoryRequest(FifoParser* parser)
 
     free(history_channels);
     free(history_messages);
+    // TODO: Fix memory leaks.
 }
 
 // Processes a request.
