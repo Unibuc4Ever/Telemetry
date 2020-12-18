@@ -184,24 +184,6 @@ void ProcessHistoryRequest(FifoParser* parser)
 
     SendHistory(personal_fifo_id, nr_entries, history_channels, history_messages);
 
-    // char client_fifo_channel[100];
-    // strcpy(client_fifo_channel, PERSONAL_RECEIVE_CHANNEL);
-    // AppendInt(client_fifo_channel + strlen(client_fifo_channel), personal_fifo_id);
-    
-    // FifoParser client;
-    // FifoInit(&client, client_fifo_channel, 1);
-
-    // PrintInt(&client, 2);
-    // PrintInt(&client, nr_entries);
-    // for (int i = 0; i < nr_entries; ++i) {
-    //     PrintInt(&client, strlen(history_channels[i]));
-    //     PrintString(&client, history_channels[i], strlen(history_channels[i]));
-    //     PrintInt(&client, strlen(history_messages[i]));
-    //     PrintString(&client, history_messages[i], strlen(history_messages[i]));
-    // }
-
-    // FifoClose(&client);
-
     free(history_channels);
     free(history_messages);
 }

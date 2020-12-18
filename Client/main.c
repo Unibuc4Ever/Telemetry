@@ -17,6 +17,15 @@ void sample_f(const char* channel, const char* message)
     fflush(stdout);
 }
 
+void free_array_string(char** pt_arr, int nr)
+{
+    if (!pt_arr)
+        return ;
+    for (int i = 0; i < nr; ++i)
+        free(pt_arr[i]);
+    free(pt_arr);
+}
+
 int main()
 {
     InitializeTelemetry();
@@ -76,6 +85,10 @@ int main()
             for (int i = 0; i < nr_found; ++i) {
                 printf("channel: %s\nmessage: %s\n", f_channels[i], f_messages[i]);
             }
+
+            free_array_string(f_channels, nr_found);
+            free_array_string(f_messages, nr_found);
+
             printf("Action finished with status %d\n", err);
         }
         else if (x == 5) {
