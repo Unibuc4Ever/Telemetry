@@ -14,7 +14,7 @@
 #include "history_storage.h"
 #include "standard.h"
 
-#define CHECK_INTERVAL  (1 * 5 * 60) // 5 minutes
+#define CHECK_INTERVAL  (1 * 1 * 5) // 5 minutes
 
 FifoParser daemon_parser;
 
@@ -198,7 +198,7 @@ void ProcessHistoryRequest(FifoParser* parser)
 // A request is basically the path of a FIFO file.
 int ProcessRequest(char* request)
 {
-    printf(" --- Received request \'%s\'!\n", request);
+    printf(" ===== Received request \'%s\'!\n", request);
     fflush(stdout);
 
     FifoParser request_parser;
@@ -226,12 +226,16 @@ int ProcessRequest(char* request)
 
 int PeriodicRoutine()
 {
+    printf(" --- Periodic Routine --- \n");
     int err = 0;
     err |= CallbackDeleteForNonexistentPID();
-    err |= HistoryDeleteTooOldMessages();
+    int nr_deleted = HistoryDeleteTooOldMessages();
     
+    if (nr_deleted > 0)
+        printf(" --- Deleted %d expired messages\n", nr_deleted);
+
     if (err)
-        printf("Error in routine, error: %d\n", err);
+        printf(" -- Error in routine, error: %d\n", err);
     return err;
 }
 

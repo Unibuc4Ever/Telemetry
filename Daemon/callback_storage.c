@@ -1,22 +1,27 @@
 #include <string.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <signal.h>
+#include <stdio.h>
 
 #include "callback_storage.h"
-#include "standard.h"
 
-struct CallbackNode {
+typedef struct __CallbackNode__ {
     char* channel;
     Callback callback;
-    struct CallbackNode* next;
-};
+    struct __CallbackNode__* next;
+} CallbackNode;
 
-typedef struct CallbackNode* CallbackList;
+CallbackNode* root = 0;
 
-CallbackList root;
+static int isAlivePID(int pid)
+{
+    return kill(pid, 0) == 0;
+}
 
 int StorageAdd(Callback callback, const char* channel)
 {
-    CallbackList node = malloc(sizeof(*node));
+    CallbackNode* node = malloc(sizeof(*node));
     node->callback = callback;
     node->channel = CopyString(channel);
     node->next = root;
@@ -31,19 +36,19 @@ int StorageRemove(Callback callback)
     
     if (root->callback.PID == callback.PID &&
             root->callback.token == callback.token) {
-        CallbackList new_root = root->next;
+        CallbackNode* new_root = root->next;
         free(root->channel);
         free(root);
         root = new_root;
         return 0;
     }
 
-    for (CallbackList elem = root; elem; elem = elem->next) {
+    for (CallbackNode* elem = root; elem; elem = elem->next) {
         if (elem->next == NULL)
             return -1; // NOT FOUND
         if (elem->next->callback.PID == callback.PID &&
                 elem->next->callback.token == callback.token) {
-            CallbackList urm = elem->next->next;
+            CallbackNode* urm = elem->next->next;
             free(elem->next->channel);
             free(elem->next);
             elem->next = urm;
@@ -56,7 +61,7 @@ int StorageRemove(Callback callback)
 int StorageGetCallbacks(const char* channel, Callback** callbacks, int *number_of_callbacks)
 {
     *number_of_callbacks = 0;
-    for (CallbackList elem = root; elem; elem = elem->next)
+    for (CallbackNode* elem = root; elem; elem = elem->next)
         if (IsPrefixOf(elem->channel, channel))
             (*number_of_callbacks)++;
 
@@ -73,7 +78,7 @@ int StorageGetCallbacks(const char* channel, Callback** callbacks, int *number_o
         return -1;
 
     int cnt = 0;
-    for (CallbackList elem = root; elem; elem = elem->next)
+    for (CallbackNode* elem = root; elem; elem = elem->next)
         if (IsPrefixOf(elem->channel, channel))
             (*callbacks)[cnt++] = elem->callback;
 
@@ -82,5 +87,23 @@ int StorageGetCallbacks(const char* channel, Callback** callbacks, int *number_o
 
 int CallbackDeleteForNonexistentPID()
 {
+    // mai intai elimin toate non-root elements
+    if (root) {
+        CallbackNode* curr = root->next, *previous = root;
+        while (curr) {
+            if (!isAlivePID(curr->callback.PID)) {
+                printf("Deleted (dead) callback PID/token:   %d | %d", 
+                       curr->callback.PID, curr->callback.token);
+                previous->next = curr->next;
+                free(curr->channel);
+                free(curr);
+                curr = previous->next;
+            }
+            else {
+                previous = curr;
+                curr = curr->next;
+            }
+        }
+    }
     return 0;
 }

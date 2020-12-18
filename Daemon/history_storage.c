@@ -14,7 +14,7 @@ HistoryNode* final = 0;
 int HistoryStorageAdd(const char* channel, const char* message)
 {
     HistoryNode* node = malloc(sizeof(HistoryNode));
-    node->data = (HistoryEntry) {CopyString(channel), CopyString(message)};
+    node->data = (HistoryEntry) {CopyString(channel), CopyString(message), time(NULL)};
     node->next = 0;
     node->prev = final;
 
@@ -67,5 +67,14 @@ int HistoryStorageQuery(const int max_entries, const char* channel,
 
 int HistoryDeleteTooOldMessages()
 {
-    return 0;
+    int last_valid_timestamp = time(NULL) - HISTORY_TIMESPAN;
+    
+    int nr_deleted = 0;
+    while(start && start->data.timestamp < last_valid_timestamp) {
+        HistoryNode* next = start->next;
+        free(start);
+        start = next;
+        ++nr_deleted;
+    }
+    return nr_deleted;
 }
