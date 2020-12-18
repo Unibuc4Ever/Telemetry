@@ -1,5 +1,8 @@
 #include "history_storage.h"
 
+
+#define MAXIMUM_MESSAGES  5
+
 typedef struct __HistoryNode__
 {
     HistoryEntry data;
@@ -10,9 +13,22 @@ typedef struct __HistoryNode__
 HistoryNode* start = 0;
 HistoryNode* final = 0;
 
+static int total_count_messages = 0;
+
+void free_history_node(HistoryNode* h_node)
+{
+    if (h_node) {
+        free((char*)h_node->data.channel);
+        free((char*)h_node->data.message);
+    }
+    free(h_node);
+}
+
 // Add a generated HistoryNode ot the end of the list
 int HistoryStorageAdd(const char* channel, const char* message)
 {
+    total_count_messages += 1;
+
     HistoryNode* node = malloc(sizeof(HistoryNode));
     node->data = (HistoryEntry) {CopyString(channel), CopyString(message)};
     node->next = 0;
@@ -26,6 +42,16 @@ int HistoryStorageAdd(const char* channel, const char* message)
 
     final->next = node;
     final = node;
+
+    // if length is too big then delete the oldest message
+    if (total_count_messages > MAXIMUM_MESSAGES) {
+        node = start;
+        start = start->next;
+        start->prev = 0;
+        free_history_node(node);
+
+        total_count_messages -= 1;
+    }
 
     return 0;
 }
