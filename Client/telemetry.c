@@ -1,5 +1,3 @@
-#include "telemetry.h"
-
 #include <stdio.h> 
 #include <stdlib.h>
 #include <string.h> 
@@ -12,6 +10,7 @@
 #include <errno.h>
 #include <pthread.h>
 
+#include "telemetry.h"
 #include "fifo_parser.h"
 #include "treap.h"
 
@@ -88,7 +87,7 @@ int HandleCallback()
     pthread_mutex_unlock(&callbacks_is_busy);
     
     if (err) {
-        printf("Couldn't find in tream the given token");
+        printf("Couldn't find in treap the given token");
         return err;
     }
 
@@ -189,8 +188,7 @@ int GetSyncHistory(const char* path_channel, int max_entries,
 
     // it will get unlocked only after HandleHistory finished
     if (!err)
-        err |= pthread_mutex_lock(&receiving_history),
-        err |= pthread_mutex_unlock(&receiving_history);
+        err |= pthread_mutex_lock(&receiving_history);
 
     printf("Mutex unlocked again\n");
 
@@ -198,6 +196,9 @@ int GetSyncHistory(const char* path_channel, int max_entries,
     *channels = pt_received_channels;
     *messages = pt_received_messages;
 
+    if (!err)
+        err |= pthread_mutex_unlock(&receiving_history);
+        
     return err;
 }
 
