@@ -255,7 +255,7 @@ int StartRuntime()
 
         int current_time_seconds = time(NULL);
         if (current_time_seconds - last_checked_seconds > CHECK_INTERVAL) {
-            SomeRoutine();
+            PeriodicRoutine();
             last_checked_seconds = current_time_seconds;
         }
     } 

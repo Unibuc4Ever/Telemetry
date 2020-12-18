@@ -64,3 +64,8 @@ int HistoryStorageQuery(const int max_entries, const char* channel,
 
     return 0;
 }
+
+int HistoryDeleteTooOldMessages()
+{
+    return 0;
+}

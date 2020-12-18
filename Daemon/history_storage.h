@@ -25,5 +25,6 @@ int HistoryStorageAdd(const char* channel, const char* message);
 int HistoryStorageQuery(const int max_entries, const char* channel, 
                 const char*** history_channels, const char*** history_messages, int* nr_entries);
 
+int HistoryDeleteTooOldMessages();
 
 #endif // BROADCAST_STORAGE_

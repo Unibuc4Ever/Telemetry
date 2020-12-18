@@ -80,3 +80,7 @@ int StorageGetCallbacks(const char* channel, Callback** callbacks, int *number_o
     return 0;
 }
 
+int CallbackDeleteForNonexistentPID()
+{
+    return 0;
+}
