@@ -160,11 +160,8 @@ void ProcessHistoryRequest(FifoParser* parser)
 
     int err = 0;
     err |= ParseInt(parser, &personal_fifo_id);
-    printf("Parse line 1\n");
     err |= ParseInt(parser, &max_entries);
-    printf("Parse line 2\n");
     err |= ParseInt(parser, &channel_length);
-    printf("Parse line 3\n");
     if (!err)
         err |= ParseString(parser, channel, channel_length);
 
@@ -172,8 +169,6 @@ void ProcessHistoryRequest(FifoParser* parser)
 
     if (err)
         return ;
-
-    printf("Read request input\n");
 
     // print request
     const char** history_channels;
