@@ -31,7 +31,7 @@ Clientul are urmatorul rol:
  * Este un middle-man intre utilizator si daemon, prezinta un API mai user-friendly.
  * Constituie un "translation unit" care primeste de la daemon callbackurile declansate si le porneste el.
 
-## Comunicarea dintre Daemon si lirarie
+## Comunicarea dintre Daemon si librarie
 
 O sa folosim pipe-uri, mai precis FIFO.
 
@@ -41,11 +41,11 @@ O sa folosim pipe-uri, mai precis FIFO.
       intr-un FIFO (/temp), si ii transmite numele Daemonului, care
       il citeste, si dupa il sterge.
     * Daca daemonul vrea sa transmita ceva unui proces, ii scrie acestuia in
-      FIFO-ul numit '/tmp/TelemetryClient/%PID%', daca acesta este deschis.
+      FIFO-ul numit '/tmp/TelemetryClient{PID}', daca acesta este deschis.
     * Cand FIFO-ul care corespunde unui proces se inchide, Daemonul considera ca s-a
       terminat procesul, si sunt sterse toate recordurile ale acestuia.
 
-## Tipuri de mesage de la client la Daemon
+## Tipuri de mesage de la Client la Daemon
 
 Tip 1: Broadcast -- Cerere de la client la daemon
 
@@ -75,12 +75,40 @@ token
 personal_fifo_id
 ```
 
-Tip 3: Callback -- De la daemon la client
+Tip 4: Cerere de history
+``` log
+4
+personal_fifo_id
+history_count
+channel_length
+channel
+```
+
+## Tipuri de mesage de la Daemon la Client
+
+Tip 1: Callback -- mesaje date pe fifo de forma: `TelemetryCallbackNr{PID}`
 
 ``` log
+1
 token
 channel_length
 channel
 message_length
 message
+```
+
+Tip 2: History -- mesaje date pe fifo de forma: `TelemetryHistoryNr{PID}`
+``` log
+2
+count_history
+ch_1_length
+ch_1
+message_1_length
+message_1
+ch_2_length
+ch_2
+message_2_length
+message_2
+...
+...
 ```

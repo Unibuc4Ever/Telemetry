@@ -22,6 +22,10 @@ int RegisterCallback(const char* channel, void(*callback)(const char* channel, c
 // Remove a registered callback from the list.
 int RemoveRegisteredCallback(int callback_id);
 
+// Returns history for a given path.
+int GetSyncHistory(const char* channel, int max_entries, 
+                   int* found_entries, char*** channels, char*** messages);
+
 // Finish communication with the daemon.
 int CloseTelemetry();
 

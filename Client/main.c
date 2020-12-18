@@ -17,12 +17,26 @@ void sample_f(const char* channel, const char* message)
     fflush(stdout);
 }
 
+void free_array_string(char** pt_arr, int nr)
+{
+    if (!pt_arr)
+        return ;
+    for (int i = 0; i < nr; ++i)
+        free(pt_arr[i]);
+    free(pt_arr);
+}
+
 int main()
 {
     InitializeTelemetry();
 
-    printf("Hello there!\nActions are:\n1. Broadcast message\n"
-           "2. Register Callback\n3. Delete Callback\n4. Close\n");
+    printf("Hello there!\n\
+            Actions are:\n\
+            1. Broadcast message\n\
+            2. Register Callback\n\
+            3. Delete Callback\n\
+            4. Request History\n\
+            5. Close\n");
     
     while (1) {
         printf(" $ ");
@@ -56,12 +70,39 @@ int main()
             printf("Action finished with status %d\n", err);
         }
         else if (x == 4) {
-            printf("Closing ...\n");
+            printf("What channel to query for history?\n $ ");
+            char channel[100];
+            int entries;
+            scanf("%s", channel);
+            printf("How many messages?\n $ ");
+            scanf("%d", &entries);
+
+            int nr_found = 0;
+            char** f_channels, **f_messages;
+            int err = GetSyncHistory(channel, entries, 
+                                     &nr_found, &f_channels, &f_messages);
+            printf("\n Found %d messages:\n", nr_found);
+            for (int i = 0; i < nr_found; ++i) {
+                printf("channel: %s\nmessage: %s\n", f_channels[i], f_messages[i]);
+            }
+
+            free_array_string(f_channels, nr_found);
+            free_array_string(f_messages, nr_found);
+
+            printf("Action finished with status %d\n", err);
+        }
+        else if (x == 5) {
             CloseTelemetry();
             break;
         }
-        else
-            printf("Action not recognized!\n");
+        else {
+            printf("Action not recognized! You can:\n\
+            1. Broadcast message\n\
+            2. Register Callback\n\
+            3. Delete Callback\n\
+            4. Request History\n\
+            5. Close\n");
+        }
     }
 
     return 0;
