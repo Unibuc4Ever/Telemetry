@@ -10,6 +10,9 @@
 #include <errno.h>
 #include <pthread.h>
 
+#include "standard.h"
+#include "fifo_parser.h"
+#include "treap.h"
 #include "telemetry.h"
 
 // Wheter InitializeTelemetry was called or not.

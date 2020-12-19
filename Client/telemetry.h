@@ -1,10 +1,6 @@
 #ifndef TELEMETRY_
 #define TELEMETRY_
 
-#include "standard.h"
-#include "fifo_parser.h"
-#include "treap.h"
-
 /**
  * Library connecting an app with the functionalities of the
  * Telemetry Daemon. The Daemon needs to be running in order
