@@ -1,6 +1,8 @@
 #ifndef CALLBACK_STORAGE_
 #define CALLBACK_STORAGE_
 
+#include "standard.h"
+
 /**
  * This storage allows the daemon to store all the registered callbacks
  * made by users. This storage can be seen as a DS with the following

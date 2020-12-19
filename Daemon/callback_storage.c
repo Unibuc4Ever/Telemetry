@@ -2,7 +2,6 @@
 #include <stdlib.h>
 
 #include "callback_storage.h"
-#include "standard.h"
 
 struct CallbackNode {
     char* channel;
