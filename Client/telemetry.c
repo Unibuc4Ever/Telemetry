@@ -189,6 +189,9 @@ int GetSyncHistory(const char* path_channel, int max_entries,
 
 int BroadcastTelemetry(const char* channel, const char* message)
 {
+    if (!isValidPath(channel))
+        return -1;
+        
     if (!initialized) {
         int x = InitializeTelemetry();
         if (x)
