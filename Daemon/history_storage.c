@@ -79,7 +79,8 @@ int HistoryDeleteTooOldMessages()
         HistoryNode* next = start->next;
         free(start);
         start = next;
-        start->prev = NULL;
+        if (start)
+            start->prev = NULL;
         ++nr_deleted;
     }
     return nr_deleted;
