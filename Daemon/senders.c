@@ -2,7 +2,7 @@
 
 void SendHistory(int PID, int entries_found, const char** channels, const char** messages)
 {
-    char personal_fifo_channel[100];
+    char personal_fifo_channel[MAX_LENGTH_FIFO_NAME];
     strcpy(personal_fifo_channel, PERSONAL_RECEIVE_CHANNEL);
     AppendInt(personal_fifo_channel + strlen(personal_fifo_channel), PID);
 
@@ -23,7 +23,7 @@ void SendHistory(int PID, int entries_found, const char** channels, const char**
 
 void SendCallback(int PID, int token, char* channel, char* message)
 {
-    char personal_fifo_channel[100];
+    char personal_fifo_channel[MAX_LENGTH_FIFO_NAME];
     strcpy(personal_fifo_channel, PERSONAL_RECEIVE_CHANNEL);
     AppendInt(personal_fifo_channel + strlen(personal_fifo_channel), PID);
 

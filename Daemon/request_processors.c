@@ -3,22 +3,24 @@
 void ProcessBroadcastRequest(FifoParser* parser)
 {
     printf("Received broadcast request:\n");
-    char channel[1000], message[1000];
-    memset(channel, 0, sizeof channel);
-    memset(message, 0, sizeof message);
+    char *channel, *message;
 
     int err, channel_length, message_length;
     err = ParseInt(parser, &channel_length);
-    if (!err)
+    if (!err) {
+        channel = malloc((channel_length + 1) * sizeof(char));
         err |= ParseString(parser, channel, channel_length);
+    }
     if (!err)
         err |= ParseInt(parser, &message_length);
-    if (!err)
+    if (!err) {
+        message = malloc((message_length + 1) * sizeof(char));
         err |= ParseString(parser, message, message_length);
+    }
 
     if (err) {
         printf("Received error %d\n", err);
-        return;
+        goto ProcessBroadcastReqEND;
     }
 
     printf("    Message length: %d\n    Message: %s\n", message_length, message);
@@ -26,7 +28,7 @@ void ProcessBroadcastRequest(FifoParser* parser)
 
     if (!isValidPath(channel)) {
         printf(" !!! Broadcast denied because channel invalid:\n    `%s`\n", channel);
-        return ;
+        goto ProcessBroadcastReqEND;
     }
 
     /// Tell the clients to call their callbacks
@@ -37,7 +39,7 @@ void ProcessBroadcastRequest(FifoParser* parser)
     // Nothing to do.
     if (err) {
         printf("Found no callbacks: %d\n", err);
-        return;
+        goto ProcessBroadcastReqEND;
     } 
 
     for (int i = 0; i < number_of_callbacks; i++)
@@ -46,13 +48,16 @@ void ProcessBroadcastRequest(FifoParser* parser)
 
     /// Save the message in history
     HistoryStorageAdd(channel, message);
+
+ProcessBroadcastReqEND:
+    free(channel);
+    free(message);
 }
 
 void ProcessCallbackRequest(FifoParser* parser)
 {
-    char channel[1000];
+    char *channel;
     int pid, token;
-    memset(channel, 0, sizeof channel);
 
     int err, channel_length;
     err = ParseInt(parser, &token);
@@ -60,8 +65,10 @@ void ProcessCallbackRequest(FifoParser* parser)
         err |= ParseInt(parser, &pid);
     if (!err)
         err |= ParseInt(parser, &channel_length);
-    if (!err)
+    if (!err) {
+        channel = malloc((channel_length + 1) * sizeof(char));
         err |= ParseString(parser, channel, channel_length);
+    }
     
     printf("Received callback request at:\n");
     printf("    channel: \'%s\'\n", channel);
@@ -72,11 +79,15 @@ void ProcessCallbackRequest(FifoParser* parser)
     if (!isValidPath(channel)) {
         printf(" !!! Callback Token Request denied, for wrong channel:\n\
     `%s`\n", channel);
-        return ;
+        
+        goto ProcessCallbackReqEND;
     }
 
     Callback callback = { pid, token };
     StorageAdd(callback, channel);
+
+ProcessCallbackReqEND:
+    free(channel);
 }
 
 void ProcessCallbackCancelRequest(FifoParser* parser)
@@ -103,22 +114,24 @@ void ProcessHistoryRequest(FifoParser* parser)
     printf("Received History request:\n");
     /// Read the request
     int max_entries, channel_length, personal_fifo_id;
-    char channel[100];
+    char *channel;
 
     int err = 0;
     err |= ParseInt(parser, &personal_fifo_id);
     err |= ParseInt(parser, &max_entries);
     err |= ParseInt(parser, &channel_length);
-    if (!err)
+    if (!err) {
+        channel = malloc((channel_length + 1) * sizeof(char));
         err |= ParseString(parser, channel, channel_length);
-
+    }
     if (err)
-        return ;
+        goto ProcessHistoryReqEND;
 
     if (!isValidPath(channel)) {
         printf(" !!! History Request denied, for wrong channel:\n\
     `%s`\n", channel);
-        return ;
+        
+        goto ProcessHistoryReqEND;
     }
 
     // print request
@@ -129,12 +142,14 @@ void ProcessHistoryRequest(FifoParser* parser)
                 &history_channels, &history_messages, &nr_entries);
 
     if (err)
-        return ;
+        goto ProcessHistoryReqEND;
 
     printf("Performed history request, nr results: %d\n", nr_entries);
 
     SendHistory(personal_fifo_id, nr_entries, history_channels, history_messages);
 
+ProcessHistoryReqEND:
+    free(channel);
     free(history_channels);
     free(history_messages);
     // TODO: Fix memory leaks.

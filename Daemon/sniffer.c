@@ -57,7 +57,7 @@ int PeriodicRoutine()
         printf(" --- Deleted %d expired messages\n", nr_deleted);
 
     if (err)
-        printf(" -- Error in routine, error: %d\n", err);
+        printf(" --- Error in routine, error: %d\n", err);
     return err;
 }
 
@@ -73,8 +73,8 @@ int StartRuntime()
 
     // Listen for requests.
     while (1) {
-        char request[1000];
-        ParseWord(&daemon_parser, request, 1000);
+        char request[2 * MAX_LENGTH_FIFO_NAME + 1];
+        ParseWord(&daemon_parser, request, 2 * MAX_LENGTH_FIFO_NAME);
 
         printf("Processed with error %d\n", ProcessRequest(request));
         fflush(stdout);
