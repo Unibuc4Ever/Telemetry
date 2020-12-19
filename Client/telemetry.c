@@ -57,12 +57,16 @@ int HandleCallback()
         err |= ParseString(&personal_receive_fifo, message, message_length);
     }
     if (err) {
+#ifdef DEBUG
         printf("Error while getting data from daemon: %d\n", err);
+#endif
         goto HandleCallbackReturn;
     }
     err = pthread_mutex_lock(&callbacks_is_busy);
     if (err) {
+#ifdef DEBUG
         printf("Unable to lock mutex: ");
+#endif
         perror(NULL);
         goto HandleCallbackReturn;
     }
@@ -71,12 +75,16 @@ int HandleCallback()
     pthread_mutex_unlock(&callbacks_is_busy);
     
     if (err) {
+#ifdef DEBUG
         printf("Couldn't find in treap the given token");
+#endif
         goto HandleCallbackReturn;
     }
 
+#ifdef DEBUG
     printf("Received token %d from cannel %s, with message %s\n",
         token, channel, message);
+#endif
     fflush(stdout);
 
     void(*callback)(const char* channel, const char* message) = data;
@@ -111,7 +119,9 @@ int HandleHistory()
             err |= ParseString(&personal_receive_fifo, pt_received_messages[i], lg_message);
     }
 
+#ifdef DEBUG
     printf("Releasing mutex\n");
+#endif
     err |= pthread_mutex_unlock(&receiving_history);
 
     return err;
@@ -137,7 +147,9 @@ void* ReceiveChecker(void* _)
                 err |= HandleHistory();
         }
         else {
+#ifdef DEBUG
             printf("Unknown operation code from Daemon: %d", op_code);
+#endif
         }
     }
 }
@@ -158,7 +170,9 @@ int GetSyncHistory(const char* path_channel, int max_entries,
     if (err)
         return err;
 
+#ifdef DEBUG
     printf("Locking mutex\n");
+#endif
 
     // Send request to daemon, then wait for the mutex to signal we have the data
     err |= pthread_mutex_lock(&receiving_history);
@@ -172,13 +186,17 @@ int GetSyncHistory(const char* path_channel, int max_entries,
     if (!err)
         err |= PrintString(&daemon_fifo, random_fifo_name, strlen(random_fifo_name));
 
+#ifdef DEBUG
     printf("Locking mutex again\n");
+#endif
 
     // it will get unlocked only after HandleHistory finished
     if (!err)
         err |= pthread_mutex_lock(&receiving_history);
 
+#ifdef DEBUG
     printf("Mutex unlocked again\n");
+#endif
 
     *found_entries = nr_received;
     *channels = pt_received_channels;
@@ -321,8 +339,10 @@ int InitializeTelemetry()
 
     initialized = 1;
 
+#ifdef DEBUG
     printf("Finished initialization!\n");
     fflush(stdout);
+#endif
     return 0;
 }
 

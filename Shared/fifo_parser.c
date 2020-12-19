@@ -29,25 +29,35 @@ int FifoInit(FifoParser* parser, const char* path, int reset)
     int stat = mkfifo(path, S_IRUSR | S_IWUSR);
 
     if (stat == -1) {
+#ifdef DEBUG
         printf("Unable to create pipe %s: Code: %d\n", path, errno);
+#endif
         char message[] = "Error message: ";
         perror(message);
     }
-    else
+    else {
+ #ifdef DEBUG
         printf("Successfully created the pipe!\n");
-    fflush(stdout);
-    
+        fflush(stdout);
+ #endif
+    }
+
     // Open file descriptor.
     parser->fd = open(path, O_RDWR);
     if (parser->fd == -1) {
+#ifdef DEBUG
         printf("Unable to open file descriptor!\n");
+#endif
         char message[] = "Error message: ";
         perror(message);
         return -1;
     }
-    else
+    else {
+#ifdef DEBUG
         printf("Successfully opened file descriptor!\n");
-    
+#endif
+    }
+
     memset(parser->buffer, 0, sizeof(parser->buffer));
     parser->p = 0;
     return 0;
