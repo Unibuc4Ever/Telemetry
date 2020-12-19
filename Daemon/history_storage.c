@@ -43,12 +43,17 @@ int HistoryStorageQuery(const int max_entries, const char* channel,
 
     printf("First run of query found %d entries\n", *nr_entries);
 
+    if (*nr_entries == 0)
+        return 0;
+
     *history_channels = malloc(*nr_entries * sizeof(char*));
     *history_messages = malloc(*nr_entries * sizeof(char*));
 
     if (!history_channels || !history_messages) {
         free(history_channels);
         free(history_messages);
+        history_channels = history_messages = NULL;
+        *nr_entries = 0;
         return -1;
     }
     
@@ -74,6 +79,7 @@ int HistoryDeleteTooOldMessages()
         HistoryNode* next = start->next;
         free(start);
         start = next;
+        start->prev = NULL;
         ++nr_deleted;
     }
     return nr_deleted;
