@@ -26,6 +26,7 @@ int StorageRemove(Callback callback);
 // Returns all the callbacks at a certain path.
 int StorageGetCallbacks(const char* channel, Callback** callbacks, int *number_of_callbacks);
 
-
+// Deletes callbacks for non existent PIDs
+int CallbackDeleteForNonexistentPID();
 
 #endif // CALLBACK_STORAGE_

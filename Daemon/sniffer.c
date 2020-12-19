@@ -3,13 +3,18 @@
 #include <fcntl.h> 
 #include <sys/stat.h> 
 #include <sys/types.h> 
+#include <time.h>
 #include <unistd.h> 
 #include <sys/wait.h>
 #include <errno.h>
 
 #include "sniffer.h"
 
+#define CHECK_INTERVAL  (1 * 1 * 5) // in seconds
+
 FifoParser daemon_parser;
+
+static int last_checked_seconds = 0;
 
 void SendHistory(int PID, int entries_found, const char** channels, const char** messages)
 {
@@ -186,7 +191,7 @@ void ProcessHistoryRequest(FifoParser* parser)
 // A request is basically the path of a FIFO file.
 int ProcessRequest(char* request)
 {
-    printf(" --- Received request \'%s\'!\n", request);
+    printf(" ===== Received request \'%s\'!\n", request);
     fflush(stdout);
 
     FifoParser request_parser;
@@ -212,6 +217,21 @@ int ProcessRequest(char* request)
     return err;
 }
 
+int PeriodicRoutine()
+{
+    printf(" --- Periodic Routine --- \n");
+    int err = 0;
+    err |= CallbackDeleteForNonexistentPID();
+    int nr_deleted = HistoryDeleteTooOldMessages();
+    
+    if (nr_deleted > 0)
+        printf(" --- Deleted %d expired messages\n", nr_deleted);
+
+    if (err)
+        printf(" -- Error in routine, error: %d\n", err);
+    return err;
+}
+
 int StartRuntime()
 {
     printf("Initialization of the Daemon...\n");
@@ -229,6 +249,12 @@ int StartRuntime()
 
         printf("Processed with error %d\n", ProcessRequest(request));
         fflush(stdout);
+
+        int current_time_seconds = time(NULL);
+        if (current_time_seconds - last_checked_seconds > CHECK_INTERVAL) {
+            PeriodicRoutine();
+            last_checked_seconds = current_time_seconds;
+        }
     } 
     return 0; 
 }
