@@ -7,7 +7,6 @@
 #include "callback_storage.h"
 
 typedef struct __CallbackNode__ {
-    char* channel;
     Callback callback;
     struct __CallbackNode__* next;
 } CallbackNode;
@@ -19,11 +18,11 @@ static int isAlivePID(int pid)
     return kill(pid, 0) == 0;
 }
 
-int StorageAdd(Callback callback, const char* channel)
+int StorageAdd(Callback callback)
 {
     CallbackNode* node = malloc(sizeof(*node));
     node->callback = callback;
-    node->channel = CopyString(channel);
+    node->callback.channel = CopyString(callback.channel);
     node->next = root;
     root = node;
     return 0;
@@ -31,13 +30,14 @@ int StorageAdd(Callback callback, const char* channel)
 
 int StorageRemove(Callback callback)
 {
+    /// Here the callback.channel pointer is NULL most probably
     if (root == NULL)
         return -1; // NOT FOUND
     
     if (root->callback.PID == callback.PID &&
             root->callback.token == callback.token) {
         CallbackNode* new_root = root->next;
-        free(root->channel);
+        free(root->callback.channel);
         free(root);
         root = new_root;
         return 0;
@@ -49,7 +49,7 @@ int StorageRemove(Callback callback)
         if (elem->next->callback.PID == callback.PID &&
                 elem->next->callback.token == callback.token) {
             CallbackNode* urm = elem->next->next;
-            free(elem->next->channel);
+            free(elem->next->callback.channel);
             free(elem->next);
             elem->next = urm;
             return 0;
@@ -62,7 +62,7 @@ int StorageGetCallbacks(const char* channel, Callback** callbacks, int *number_o
 {
     *number_of_callbacks = 0;
     for (CallbackNode* elem = root; elem; elem = elem->next)
-        if (IsPrefixOf(elem->channel, channel))
+        if (IsPrefixOf(elem->callback.channel, channel))
             (*number_of_callbacks)++;
 
     // Nothing to return.
@@ -71,16 +71,20 @@ int StorageGetCallbacks(const char* channel, Callback** callbacks, int *number_o
         return 0;
     }
 
-    *callbacks = malloc(*number_of_callbacks * sizeof(callbacks));
+    *callbacks = malloc(*number_of_callbacks * sizeof(*callbacks));
 
     // Unable to allocate memory.
     if (callbacks == NULL)
         return -1;
 
+    dummy_cb* dum_pt = malloc(1 * sizeof(*dum_pt));
+
     int cnt = 0;
     for (CallbackNode* elem = root; elem; elem = elem->next)
-        if (IsPrefixOf(elem->channel, channel))
+        if (IsPrefixOf(elem->callback.channel, channel))
             (*callbacks)[cnt++] = elem->callback;
+
+    free(dum_pt);
 
     return 0;
 }
@@ -95,7 +99,7 @@ int CallbackDeleteForNonexistentPID()
                 printf(" --- Deleted (dead) callback PID/token:   %d | %d", 
                        curr->callback.PID, curr->callback.token);
                 previous->next = curr->next;
-                free(curr->channel);
+                free(curr->callback.channel);
                 free(curr);
                 curr = previous->next;
             }
@@ -110,7 +114,7 @@ int CallbackDeleteForNonexistentPID()
         printf(" --- Deleted (dead) callback PID/token:   %d | %d", 
                 root->callback.PID, root->callback.token);
         CallbackNode* next = root->next;
-        free(root->channel);
+        free(root->callback.channel);
         free(root);
         root = next;
     }

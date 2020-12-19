@@ -91,8 +91,10 @@ Tip 1: Callback
 ``` log
 1
 token
-channel_length
-channel
+source_channel_length
+source_channel
+subscribed_channel_length
+subscribed_channel
 message_length
 message
 ```

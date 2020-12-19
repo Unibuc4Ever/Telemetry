@@ -37,7 +37,7 @@ void SendHistory(int PID, int entries_found, const char** channels, const char**
     FifoClose(&parser);
 }
 
-void SendCallback(int PID, int token, char* channel, char* message)
+void SendCallback(int PID, int token, char* src_channel, char* dest_channel, char* message)
 {
     char personal_fifo_channel[100];
     strcpy(personal_fifo_channel, PERSONAL_RECEIVE_CHANNEL);
@@ -50,8 +50,10 @@ void SendCallback(int PID, int token, char* channel, char* message)
 
     PrintInt(&parser, 1);
     PrintInt(&parser, token);
-    PrintInt(&parser, strlen(channel));
-    PrintString(&parser, channel, strlen(channel));
+    PrintInt(&parser, strlen(src_channel));
+    PrintString(&parser, src_channel, strlen(src_channel));
+    PrintInt(&parser, strlen(dest_channel));
+    PrintString(&parser, dest_channel, strlen(dest_channel));
     PrintInt(&parser, strlen(message));
     PrintString(&parser, message, strlen(message));
 
@@ -59,7 +61,7 @@ void SendCallback(int PID, int token, char* channel, char* message)
 
     printf("Sent callback:\n");
     printf("    PID: %d\n    Token: %d\n", PID, token);
-    printf("    Channel: %s\n    Message: %s\n", channel, message);
+    printf("    Channel: %s\n    Message: %s\n", dest_channel, message);
 }
 
 void ProcessBroadcastRequest(FifoParser* parser)
@@ -87,7 +89,7 @@ void ProcessBroadcastRequest(FifoParser* parser)
     printf("    Channel length: %d\n    Channel: %s\n", channel_length, channel);
 
     /// Tell the clients to call their callbacks
-    Callback* callbacks;
+    Callback* callbacks = NULL;
     int number_of_callbacks;
     err = StorageGetCallbacks(channel, &callbacks, &number_of_callbacks);
 
@@ -99,10 +101,12 @@ void ProcessBroadcastRequest(FifoParser* parser)
 
     for (int i = 0; i < number_of_callbacks; i++)
         SendCallback(callbacks[i].PID, callbacks[i].token,
-                     channel, message);
+                     channel, callbacks[i].channel, message);
 
     /// Save the message in history
     HistoryStorageAdd(channel, message);
+
+    free(callbacks);
 }
 
 void ProcessCallbackRequest(FifoParser* parser)
@@ -126,8 +130,8 @@ void ProcessCallbackRequest(FifoParser* parser)
     printf("    PID: %d\n", pid);
     fflush(stdout);
 
-    Callback callback = { pid, token };
-    StorageAdd(callback, channel);
+    Callback callback = { pid, token, channel };
+    StorageAdd(callback);
 }
 
 void ProcessCallbackCancelRequest(FifoParser* parser)
@@ -145,7 +149,7 @@ void ProcessCallbackCancelRequest(FifoParser* parser)
     printf("    PID: %d\n", pid);
     fflush(stdout);
 
-    Callback callback = { pid, token };
+    Callback callback = { pid, token, NULL };
     StorageRemove(callback);
 }
 

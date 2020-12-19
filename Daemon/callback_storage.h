@@ -13,12 +13,17 @@
  */
 
 // Used to storing callbacks.
-typedef struct {
+typedef struct __Callback__ {
     int PID, token;
+    char* channel;
 } Callback;
 
+typedef struct __dummy_cb__ {
+    int PID, token;
+} dummy_cb;
+
 // Adds a callback.
-int StorageAdd(Callback callback, const char* channel);
+int StorageAdd(Callback callback);
 
 // Removes a callback.
 int StorageRemove(Callback callback);

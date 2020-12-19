@@ -7,12 +7,19 @@
 
 #define flush fflush(stdout)
 
-void sample_f(const char* channel, const char* message)
+void sample_f(const char* source_channel, 
+              const char* subscribed_channel,
+              const char* message,
+              int token)
 {
     printf("\n\n\nHello! I'm a callback function!!\n"
            "I was called from:\n"
-           "    Channel: %s\n"
-           "    Message: %s\n", channel, message);
+           "    Source Channel: %s\n"
+           "           Message: %s\n"
+           "And my initial details are:\n"
+           "    Subscribed Channel: %s\n"
+           "        My birth token: %d\n", 
+           source_channel, subscribed_channel, message, token);
     printf("\n\n $ ");
     fflush(stdout);
 }

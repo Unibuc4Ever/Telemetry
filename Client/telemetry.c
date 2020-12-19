@@ -36,16 +36,22 @@ static char personal_receive_channel[MAX_LENGTH_FIFO_NAME];
 
 int HandleCallback()
 {
-    int token, channel_length, message_length;
-    char* channel = NULL, *message = NULL;
+    int token, src_channel_length, subscribed_channel_length, message_length;
+    char* source_channel = NULL, *message = NULL, *subscribed_channel = NULL;
     int err = 0;
     if (!err)
         err |= ParseInt(&personal_receive_fifo, &token);
     if (!err)
-        err |= ParseInt(&personal_receive_fifo, &channel_length);
+        err |= ParseInt(&personal_receive_fifo, &src_channel_length);
     if (!err) {
-        channel = malloc((channel_length + 1) * sizeof(char));
-        err |= ParseString(&personal_receive_fifo, channel, channel_length);
+        source_channel = malloc((src_channel_length + 1) * sizeof(char));
+        err |= ParseString(&personal_receive_fifo, source_channel, src_channel_length);
+    }
+    if (!err)
+        err |= ParseInt(&personal_receive_fifo, &subscribed_channel_length);
+    if (!err) {
+        subscribed_channel = malloc((subscribed_channel_length + 1) * sizeof(char));
+        err |= ParseString(&personal_receive_fifo, subscribed_channel, subscribed_channel_length);
     }
     if (!err)
         err |= ParseInt(&personal_receive_fifo, &message_length);
@@ -72,17 +78,19 @@ int HandleCallback()
         goto HandleCallbackReturn;
     }
 
-    printf("Received token %d from cannel %s, with message %s\n",
-        token, channel, message);
     fflush(stdout);
 
-    void(*callback)(const char* channel, const char* message) = data;
-    (*callback)(channel, message);
+    void(*callback)(const char* source_channel,
+                    const char* subscribed_channel,    
+                    const char* message,
+                    int token) = data;
+    (*callback)(source_channel, subscribed_channel, message, token);
 
 HandleCallbackReturn:
 
     free(message);
-    free(channel);
+    free(source_channel);
+    free(subscribed_channel);
     return err;
 }
 
@@ -215,7 +223,10 @@ int BroadcastTelemetry(const char* channel, const char* message)
 }
 
 int RegisterCallback(const char* channel, 
-                     void(*callback)(const char* channel, const char* message))
+    void(*callback)(const char* source_channel,
+                    const char* subscribed_channel,    
+                    const char* message,
+                    int token))
 {
     if (!initialized) {
         int x = InitializeTelemetry();
