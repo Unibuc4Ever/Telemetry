@@ -87,7 +87,7 @@ int StorageGetCallbacks(const char* channel, Callback** callbacks, int *number_o
 
 int CallbackDeleteForNonexistentPID()
 {
-    // mai intai elimin toate non-root elements
+    // delete non root elements first
     if (root) {
         CallbackNode* curr = root->next, *previous = root;
         while (curr) {
@@ -104,6 +104,15 @@ int CallbackDeleteForNonexistentPID()
                 curr = curr->next;
             }
         }
+    }
+    // try to delete the root if necessary
+    if (root && !isAlivePID(root->callback.PID)) {
+        printf(" --- Deleted (dead) callback PID/token:   %d | %d", 
+                root->callback.PID, root->callback.token);
+        CallbackNode* next = root->next;
+        free(root->channel);
+        free(root);
+        root = next;
     }
     return 0;
 }
