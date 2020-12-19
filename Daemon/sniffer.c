@@ -87,7 +87,7 @@ void ProcessBroadcastRequest(FifoParser* parser)
     printf("    Channel length: %d\n    Channel: %s\n", channel_length, channel);
 
     if (!isValidPath(channel)) {
-        printf(" !!! Broadcast denied because channel invalid: `%s`", channel);
+        printf(" !!! Broadcast denied because channel invalid:\n    `%s`\n", channel);
         return ;
     }
 
@@ -176,7 +176,7 @@ void ProcessHistoryRequest(FifoParser* parser)
 
     if (err)
         return ;
-        
+
     if (!isValidPath(channel)) {
         printf(" !!! History Request denied, for wrong channel:\n\
     `%s`\n", channel);
