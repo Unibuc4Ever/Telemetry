@@ -11,8 +11,6 @@
 #include <pthread.h>
 
 #include "telemetry.h"
-#include "fifo_parser.h"
-#include "treap.h"
 
 // Wheter InitializeTelemetry was called or not.
 static int initialized;
@@ -29,31 +27,12 @@ static int personal_fifo_id;
 // Thread used by the callback checker.
 static pthread_t callback_thread;
 
-// Channels used for sending messages to the daemon.
-static const char DAEMON_FIFO_CHANNEL[] = "/tmp/TelemetryRequests";
-static char PERSONAL_QUERY_CHANNEL[100] = "/tmp/TelemetryQueryNr";
-// Channels used to receive messages from the daemon 
-static char PERSONAL_RECEIVE_CHANNEL[100] = "/tmp/TelemetryReceiveNr";
-
 static pthread_mutex_t receiving_history = PTHREAD_MUTEX_INITIALIZER;
 static int nr_received;
 static char** pt_received_channels;
 static char** pt_received_messages;
 
-int GenerateRandomInt()
-{
-    static int cnt = 0;
-    return cnt++ % 1000 + 1;
-}
-
-char* GenerateRandomFifoName()
-{
-    static char random_fifo_name[100];
-    strcpy(random_fifo_name, PERSONAL_QUERY_CHANNEL);
-    AppendInt(random_fifo_name + strlen(random_fifo_name), GenerateRandomInt());
-    printf("Generate random fifo name: %s\n", random_fifo_name);
-    return random_fifo_name;
-}
+static char personal_receive_channel[MAX_LENGTH_FIFO_NAME];
 
 int HandleCallback()
 {
@@ -319,13 +298,11 @@ int InitializeTelemetry()
         return err;
 
     personal_fifo_id = getpid();
-    // Create and open callback FIFO.
-    // AppendInt(PERSONAL_QUERY_CHANNEL + strlen(PERSONAL_QUERY_CHANNEL), personal_fifo_id);
-    // err = FifoInit(&personal_query_fifo, PERSONAL_QUERY_CHANNEL, 1);
 
     // Create and open history FIFO.
-    AppendInt(PERSONAL_RECEIVE_CHANNEL + strlen(PERSONAL_RECEIVE_CHANNEL), personal_fifo_id);
-    err |= FifoInit(&personal_receive_fifo, PERSONAL_RECEIVE_CHANNEL, 1);
+    strcpy(personal_receive_channel, PERSONAL_RECEIVE_CHANNEL);
+    AppendInt(personal_receive_channel + strlen(personal_receive_channel), personal_fifo_id);
+    err |= FifoInit(&personal_receive_fifo, personal_receive_channel, 1);
 
     if (err)
         return err;
@@ -353,7 +330,7 @@ int CloseTelemetry()
         pthread_cancel(callback_thread);
         err |= ClearTreap(&callbacks);
         // unlink(PERSONAL_QUERY_CHANNEL);
-        unlink(PERSONAL_RECEIVE_CHANNEL);
+        unlink(personal_receive_channel);
         initialized = 0;
         return 0;
     }

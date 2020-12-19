@@ -1,7 +1,6 @@
 #ifndef CALLBACK_STORAGE_
 #define CALLBACK_STORAGE_
 
-#include "callback_storage.h"
 #include "standard.h"
 
 /**
