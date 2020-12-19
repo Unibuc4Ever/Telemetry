@@ -8,7 +8,9 @@ SANITIZER:=-fsanitize=address,undefined,signed-integer-overflow
 WARNINGS:=-Wall -Wextra
 
 all: client daemon
-daemon: 
+
+daemon: $(DAEMON_CFILES) ${SHARED_CFILES}
 	$(CC) $(FLAGS) $(SANITIZER) $(WARNINGS) $(SHARED_LIB) $(SHARED_CFILES) $(DAEMON_CFILES) -o daemon.out
-client: 
+
+client: $(CLIENT_CFILES) $(SHARED_CFILES)
 	$(CC) $(FLAGS) $(SANITIZER) $(WARNINGS) $(SHARED_LIB) $(SHARED_CFILES) $(CLIENT_CFILES) -o client.out
