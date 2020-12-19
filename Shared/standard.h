@@ -7,6 +7,7 @@
 
 #define MAX_LENGTH_FIFO_NAME  256
 
+#include <stdio.h>
 
 extern const char DAEMON_FIFO_CHANNEL[];
 
