@@ -1,15 +1,19 @@
 CC=gcc
 FLAGS=-O0 -g
-DAEMON_CFILES:=$(shell find . | grep "\./Daemon.*c$$")
-CLIENT_CFILES:=$(shell find . | grep "\./Client.*c$$")
-SHARED_CFILES:=$(shell find . | grep "\./Shared.*c$$")
-SHARED_LIB:=-IShared -pthread
+DAEMON_CFILES:=$(wildcard ./Daemon/*.c)
+CLIENT_CFILES:=$(wildcard ./Client/*.c)
+SHARED_CFILES:=$(wildcard ./Shared/*.c)
+SHARED_LIB:=-IShared -IClient -pthread
 SANITIZER:=-fsanitize=address,undefined,signed-integer-overflow
 WARNINGS:=-Wall -Wextra
 
-all: client daemon
+CLIENT_O_FILES:=$(patsubst %.c, %.o, $(CLIENT_CFILES) $(SHARED_CFILES))
 
-daemon: $(DAEMON_CFILES) ${SHARED_CFILES}
+COMP_FLAGS:=$(FLAGS) $(SANITIZER) $(WARNINGS) $(SHARED_LIB)
+
+all: client daemon demo
+
+daemon: $(DAEMON_CFILES) $(SHARED_CFILES)
 	$(CC) $(FLAGS) $(SANITIZER) $(WARNINGS) $(SHARED_LIB) $(SHARED_CFILES) $(DAEMON_CFILES) -o daemon.out
 	
 client: $(SHARED_CFILES) $(CLIENT_CFILES)
