@@ -71,16 +71,19 @@ int StorageGetCallbacks(const char* channel, Callback** callbacks, int *number_o
         return 0;
     }
 
-    *callbacks = malloc(*number_of_callbacks * sizeof(callbacks));
+    *callbacks = malloc(*number_of_callbacks * sizeof(*callbacks));
 
     // Unable to allocate memory.
     if (callbacks == NULL)
         return -1;
 
     int cnt = 0;
-    for (CallbackNode* elem = root; elem; elem = elem->next)
-        if (IsPrefixOf(elem->channel, channel))
-            (*callbacks)[cnt++] = elem->callback;
+    for (CallbackNode* elem = root; elem; elem = elem->next) {
+        if (IsPrefixOf(elem->channel, channel)) {
+            Callback c = elem->callback;
+            (*callbacks)[cnt++] = c;
+        }
+    }
 
     return 0;
 }
