@@ -35,15 +35,18 @@ Clientul are urmatorul rol:
 
 O sa folosim pipe-uri, mai precis FIFO.
 
-* Daemonul o sa creeze un FIFO numit '/tmp/TelemetryRequests/'.
-* Flowul de comunicare intre Daemon si procese e urmatorul:
+
+* Toate FIFO-urile denumite mai jos se afla in folderul `/tmp`, astfel FIFO-ul `exampleFifo`
+defapt are flly qualified name `/tmp/exampleFifo`
+* Daemonul o sa creeze un FIFO numit `TelemetryRequests`.
+* Flow-ul de comunicare intre Daemon si procese e urmatorul:
     * Daca un proces vrea sa ii transmita ceva Daemonului, o sa scrie requestul
-      intr-un FIFO (/temp), si ii transmite numele Daemonului, care
-      il citeste, si dupa il sterge.
+      in FIFO-ul `TelemetryQueryNr{PID}{RRR}`, (PID este pid-ul clientului, iar RRRR formeaza un numar generat aleator de la 1 la 1000) si ii transmite numele fifo-ului acesta Daemonului in `TelemetryRequests`, care il citeste, si dupa il sterge.
     * Daca daemonul vrea sa transmita ceva unui proces, ii scrie acestuia in
-      FIFO-ul numit '/tmp/TelemetryReceiveNr{PID}', daca acesta este deschis.
+      FIFO-ul numit `TelemetryReceiveNr{PID}`, daca acesta este deschis.
     * Cand FIFO-ul care corespunde unui proces se inchide, Daemonul considera ca s-a
       terminat procesul, si sunt sterse toate recordurile ale acestuia.
+      Acest cleanup are loc periodic.
 
 ## Tipuri de mesage de la Client la Daemon
 

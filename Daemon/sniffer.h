@@ -1,9 +1,12 @@
 #ifndef SNIFFER_
 #define SNIFFER_
 
-#include "fifo_parser.h"
 #include "callback_storage.h"
 #include "history_storage.h"
+
+#include "request_processors.h"
+#include "senders.h"
+
 #include "standard.h"
 
 /**

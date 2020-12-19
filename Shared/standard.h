@@ -7,6 +7,7 @@
 
 #define MAX_LENGTH_FIFO_NAME  256
 
+#include <stdio.h>
 
 extern const char DAEMON_FIFO_CHANNEL[];
 
@@ -24,5 +25,9 @@ int IsPrefixOf(const char* big, const char* small);
 
 // Ads string representation of int in string s
 void AppendInt(char* s, int nr);
+
+// Checks if the path is like ^(/\w+)+/$
+// example: /First_needed/perhaps/numbers777/
+int isValidPath(const char* path);
 
 #endif // STANDARD_
