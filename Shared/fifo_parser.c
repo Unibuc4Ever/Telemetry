@@ -31,9 +31,9 @@ int FifoInit(FifoParser* parser, const char* path, int reset)
     if (stat == -1) {
 #ifdef DEBUG
         printf("Unable to create pipe %s: Code: %d\n", path, errno);
-#endif
         char message[] = "Error message: ";
         perror(message);
+#endif
     }
     else {
  #ifdef DEBUG
@@ -47,9 +47,9 @@ int FifoInit(FifoParser* parser, const char* path, int reset)
     if (parser->fd == -1) {
 #ifdef DEBUG
         printf("Unable to open file descriptor!\n");
-#endif
         char message[] = "Error message: ";
         perror(message);
+#endif
         return -1;
     }
     else {

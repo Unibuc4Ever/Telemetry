@@ -114,7 +114,7 @@ void ProcessHistoryRequest(FifoParser* parser)
     printf("Received History request:\n");
     /// Read the request
     int max_entries, channel_length, personal_fifo_id;
-    char *channel;
+    char *channel = NULL;
 
     int err = 0;
     err |= ParseInt(parser, &personal_fifo_id);
@@ -135,8 +135,8 @@ void ProcessHistoryRequest(FifoParser* parser)
     }
 
     // print request
-    const char** history_channels;
-    const char** history_messages;
+    const char** history_channels = NULL;
+    const char** history_messages = NULL;
     int nr_entries;
     err |= HistoryStorageQuery(max_entries, channel, 
                 &history_channels, &history_messages, &nr_entries);

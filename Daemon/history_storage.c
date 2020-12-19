@@ -50,9 +50,9 @@ int HistoryStorageQuery(const int max_entries, const char* channel,
     *history_messages = malloc(*nr_entries * sizeof(char*));
 
     if (!history_channels || !history_messages) {
-        free(history_channels);
-        free(history_messages);
-        history_channels = history_messages = NULL;
+        free(*history_channels);
+        free(*history_messages);
+        *history_channels = *history_messages = NULL;
         *nr_entries = 0;
         return -1;
     }
@@ -81,6 +81,8 @@ int HistoryDeleteTooOldMessages()
         start = next;
         if (start)
             start->prev = NULL;
+        else
+            final = NULL;
         ++nr_deleted;
     }
     return nr_deleted;
