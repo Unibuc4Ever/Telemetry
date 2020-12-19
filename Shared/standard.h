@@ -25,4 +25,8 @@ int IsPrefixOf(const char* big, const char* small);
 // Ads string representation of int in string s
 void AppendInt(char* s, int nr);
 
+// Checks if the path is like ^(/\w+)+/$
+// example: /First_needed/perhaps/numbers777/
+int isValidPath(const char* path);
+
 #endif // STANDARD_

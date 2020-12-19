@@ -80,6 +80,11 @@ void ProcessBroadcastRequest(FifoParser* parser)
 
     printf("    Message length: %d\n    Message: %s\n", message_length, message);
     printf("    Channel length: %d\n    Channel: %s\n", channel_length, channel);
+    
+    if (!isValidPath(channel)) {
+        printf(" !!! Broadcast denied because channel invalid: `%s`", channel);
+        return ;
+    }
 
     /// Tell the clients to call their callbacks
     Callback* callbacks;
@@ -119,6 +124,11 @@ void ProcessCallbackRequest(FifoParser* parser)
     printf("    channel: \'%s\'\n", channel);
     printf("    token: %d\n", token);
     printf("    PID: %d\n", pid);
+    if (!isValidPath(channel)) {
+        printf(" !!! Callback Token Request denied, for wrong channel:\n\
+    `%s`\n", channel);
+        return ;
+    }
     fflush(stdout);
 
     Callback callback = { pid, token };
