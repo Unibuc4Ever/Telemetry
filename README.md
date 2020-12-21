@@ -1,5 +1,18 @@
 # Telemetry
 
+## Usage
+
+`make` for building:
+* `daemon.out`, daemon runtime
+* `libtelemetry.a`, static lib
+* `main.out`, demo
+
+For closing the daemon, use the following command:
+```bash
+➜  SScHat git:(main) pkill -f "./daemon.out"
+➜  SScHat git:(main) ps -x | grep "daemon"
+```
+
 ## Proiect pt curs de OS
 
 Proiectul este ales din lista disponibila [aici](https://cs.unibuc.ro/~pirofti/so/so-lab-proiect.pdf).
