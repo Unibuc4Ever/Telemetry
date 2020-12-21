@@ -15,8 +15,6 @@ extern const char PERSONAL_QUERY_CHANNEL[];
 extern const char PERSONAL_RECEIVE_CHANNEL[];
 
 
-char* GenerateRandomFifoName();
-
 // Create a new copy of the string.
 char* CopyString(const char* string);
 

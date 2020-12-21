@@ -68,10 +68,10 @@ void TransformToDaemon()
 
 int main()
 {
-#ifndef DEBUG
+    #ifndef DEBUG
     TransformToDaemon();
     freopen("/tmp/Telemetry.log", "w", stdout);
-#endif
+    #endif
 
     int err = StartRuntime();
 

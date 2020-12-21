@@ -4,23 +4,8 @@
 #include "standard.h"
 
 const char DAEMON_FIFO_CHANNEL[] = "/tmp/TelemetryRequests";
-
 const char PERSONAL_QUERY_CHANNEL[] = "/tmp/TelemetryQueryNr";
 const char PERSONAL_RECEIVE_CHANNEL[] = "/tmp/TelemetryReceiveNr";
-
-static int GenerateRandomInt()
-{
-    static int cnt = 0;
-    return cnt++ % 1000 + 1;
-}
-
-char* GenerateRandomFifoName()
-{
-    static char random_fifo_name[MAX_LENGTH_FIFO_NAME];
-    strcpy(random_fifo_name, PERSONAL_QUERY_CHANNEL);
-    AppendInt(random_fifo_name + strlen(random_fifo_name), GenerateRandomInt());
-    return random_fifo_name;
-}
 
 char* CopyString(const char* string)
 {

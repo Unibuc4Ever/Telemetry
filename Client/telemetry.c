@@ -37,6 +37,22 @@ static char** pt_received_messages;
 
 static char personal_receive_channel[MAX_LENGTH_FIFO_NAME];
 
+static int GenerateRandomInt()
+{
+    static int cnt = 0;
+    return ++cnt;
+}
+
+char* GenerateRandomFifoName()
+{
+    static char random_fifo_name[MAX_LENGTH_FIFO_NAME];
+    strcpy(random_fifo_name, PERSONAL_QUERY_CHANNEL);
+    AppendInt(random_fifo_name + strlen(random_fifo_name), personal_fifo_id);
+    random_fifo_name[strlen(random_fifo_name)] = '_';
+    AppendInt(random_fifo_name + strlen(random_fifo_name), GenerateRandomInt());
+    return random_fifo_name;
+}
+
 int HandleCallback()
 {
     int token, channel_length, message_length;
@@ -57,16 +73,16 @@ int HandleCallback()
         err |= ParseString(&personal_receive_fifo, message, message_length);
     }
     if (err) {
-#ifdef DEBUG
+    #ifdef DEBUG
         printf("Error while getting data from daemon: %d\n", err);
-#endif
+    #endif
         goto HandleCallbackReturn;
     }
     err = pthread_mutex_lock(&callbacks_is_busy);
     if (err) {
-#ifdef DEBUG
+    #ifdef DEBUG
         printf("Unable to lock mutex: ");
-#endif
+    #endif
         perror(NULL);
         goto HandleCallbackReturn;
     }
@@ -75,22 +91,22 @@ int HandleCallback()
     pthread_mutex_unlock(&callbacks_is_busy);
     
     if (err) {
-#ifdef DEBUG
+    #ifdef DEBUG
         printf("Couldn't find in treap the given token");
-#endif
+    #endif
         goto HandleCallbackReturn;
     }
 
-#ifdef DEBUG
+    #ifdef DEBUG
     printf("Received token %d from cannel %s, with message %s\n",
         token, channel, message);
-#endif
+    #endif
     fflush(stdout);
 
     void(*callback)(const char* channel, const char* message) = data;
     (*callback)(channel, message);
 
-HandleCallbackReturn:
+    HandleCallbackReturn:
 
     free(message);
     free(channel);
@@ -119,9 +135,9 @@ int HandleHistory()
             err |= ParseString(&personal_receive_fifo, pt_received_messages[i], lg_message);
     }
 
-#ifdef DEBUG
+    #ifdef DEBUG
     printf("Releasing mutex\n");
-#endif
+    #endif
     err |= pthread_mutex_unlock(&receiving_history);
 
     return err;
@@ -147,9 +163,9 @@ void* ReceiveChecker(void* _)
                 err |= HandleHistory();
         }
         else {
-#ifdef DEBUG
+        #ifdef DEBUG
             printf("Unknown operation code from Daemon: %d", op_code);
-#endif
+        #endif
         }
     }
 }
@@ -170,9 +186,9 @@ int GetSyncHistory(const char* path_channel, int max_entries,
     if (err)
         return err;
 
-#ifdef DEBUG
+    #ifdef DEBUG
     printf("Locking mutex\n");
-#endif
+    #endif
 
     // Send request to daemon, then wait for the mutex to signal we have the data
     err |= pthread_mutex_lock(&receiving_history);
@@ -186,17 +202,17 @@ int GetSyncHistory(const char* path_channel, int max_entries,
     if (!err)
         err |= PrintString(&daemon_fifo, random_fifo_name, strlen(random_fifo_name));
 
-#ifdef DEBUG
+    #ifdef DEBUG
     printf("Locking mutex again\n");
-#endif
+    #endif
 
     // it will get unlocked only after HandleHistory finished
     if (!err)
         err |= pthread_mutex_lock(&receiving_history);
 
-#ifdef DEBUG
+    #ifdef DEBUG
     printf("Mutex unlocked again\n");
-#endif
+    #endif
 
     *found_entries = nr_received;
     *channels = pt_received_channels;
@@ -339,10 +355,10 @@ int InitializeTelemetry()
 
     initialized = 1;
 
-#ifdef DEBUG
+    #ifdef DEBUG
     printf("Finished initialization!\n");
     fflush(stdout);
-#endif
+    #endif
     return 0;
 }
 
@@ -350,12 +366,10 @@ int CloseTelemetry()
 {
     if (initialized) {
         int err = FifoClose(&daemon_fifo);
-        // err |= FifoClose(&personal_query_fifo);
         err |= FifoClose(&personal_receive_fifo);
         
         pthread_cancel(callback_thread);
         err |= ClearTreap(&callbacks);
-        // unlink(PERSONAL_QUERY_CHANNEL);
         unlink(personal_receive_channel);
         initialized = 0;
         return 0;

@@ -10,7 +10,7 @@
 
 #include "sniffer.h"
 
-#define CHECK_INTERVAL  (1 * 1 * 5) // in seconds
+#define CHECK_INTERVAL  (1 * 1 * 30) // in seconds
 
 FifoParser daemon_parser;
 
