@@ -30,3 +30,8 @@ client_debug: $(SHARED_CFILES) $(CLIENT_CFILES)
 
 demo:
 	$(CC) $(COMP_FLAGS) -o main.out Demo/main.c libtelemetry.a
+
+clean:
+	rm *.out
+	rm *.a
+	rm *.o
