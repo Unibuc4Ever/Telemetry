@@ -46,6 +46,8 @@ static int GenerateRandomInt()
 char* GenerateRandomFifoName()
 {
     static char random_fifo_name[MAX_LENGTH_FIFO_NAME];
+    memset(random_fifo_name, 0, MAX_LENGTH_FIFO_NAME);
+
     strcpy(random_fifo_name, PERSONAL_QUERY_CHANNEL);
     AppendInt(random_fifo_name + strlen(random_fifo_name), personal_fifo_id);
     random_fifo_name[strlen(random_fifo_name)] = '_';
