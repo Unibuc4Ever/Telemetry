@@ -14,6 +14,10 @@
 
 void TransformToDaemon()
 {
+    /*
+        Function copied from 
+        https://nullraum.net/how-to-create-a-daemon-in-c/
+    */
     pid_t pid;
     
     /* Fork off the parent process */
