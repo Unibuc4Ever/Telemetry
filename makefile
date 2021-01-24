@@ -28,7 +28,7 @@ client_debug: $(SHARED_CFILES) $(CLIENT_CFILES)
 	$(CC) -c $(FLAGS) $(SANITIZER) $(WARNINGS) $(SHARED_LIB) $(SHARED_CFILES) $(CLIENT_CFILES) -DDEBUG
 	ar rc libtelemetry.a fifo_parser.o  standard.o  telemetry.o  treap.o 
 
-demo:
+demo: Demo/main.c libtelemetry.a
 	$(CC) $(COMP_FLAGS) -o demo.out Demo/main.c libtelemetry.a
 
 clean:
