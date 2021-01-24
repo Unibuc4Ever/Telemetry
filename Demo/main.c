@@ -4,7 +4,7 @@
 
 #include "telemetry.h"
 #include "fifo_parser.h"
-// altceva  modificat din nou
+// modificare
 #define flush fflush(stdout)
 
 void sample_f(const char* channel, const char* message)
